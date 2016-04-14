@@ -1,0 +1,217 @@
+\documentclass[10pt, a4paper]{article}
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{enumerate}
+\usepackage{caption, subcaption, floatrow}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{xfrac}
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usetikzlibrary{plotmarks, calc}
+\usepackage{standalone}
+\usepackage{url}
+
+
+\usepackage{xcolor, colortbl}
+
+\newcolumntype{S}{>{\columncolor{lime!50}}c}         % serial small
+\newcolumntype{L}{>{\columncolor{cyan!50}}c}        % serial large
+\newcolumntype{P}{>{\columncolor{red!50}}c}        % parallel
+               
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\set}[1]{\{#1\}}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+\newcommand{\semi}[1]{\lvert#1\rvert}
+\newcommand{\norm}[1]{\lVert#1\rVert}
+\newcommand{\inner}[2]{\ensuremath{\left(#1, #2\right)}}
+\renewcommand{\brack}[1]{\langle#1\rangle}
+\newcommand{\average}[1]{\ensuremath{\langle#1\rangle} }
+\newcommand{\jump}[1]{\ensuremath{[\![#1]\!]} }
+\newcommand{\mat}[1]{\ensuremath{\mathsf{#1}}}
+\newcommand{\dual}[1]{\ensuremath{{#1}^{\prime}}}
+\renewcommand{\vec}[1]{\mat{#1}}
+\newcommand{\supp}{\operatorname{supp}} 
+
+\oddsidemargin=3pt
+\textwidth=500pt
+\topmargin=3pt
+
+\title{Notes on $Q$-cap efficiency}
+
+\begin{document}
+\maketitle
+
+\section*{Introduction}
+To estimate efficiency of the $Q$-cap preconditioner we consider the problem of
+spectral equivalence of the $H^{1/2}$ operator with the exact Schur complement of 
+system $\left[\left[A, \dual{T}\right], \left[T, 0\right]\right]$. Here $A$ is a 
+CG$_1$ discretization of a two-dimensional Laplacian and $T$ is the restriction from
+CG$_1$ space setup on two-dimensional to CG$_1$ space over a
+one-dimensional domain. This example is useful since it includes construction of 
+a preconditioner for the $A$ matrix, calls to preconditioned conjugate gradient 
+method in order to invert $A$ and obviously construction of $H^{1/2}$ matrix
+representation. These tasks are where most of the time in solving the coupled
+multiphysics (plate-beam) problem would be spent. Further the example reveals some
+features of the mass lumping - a potential remedy in making the construction of
+$H^{1/2}$ more efficient
+
+In the experiment we take \texttt{UnitSquareMesh(n, n)} as the two-dimensional 
+domain. The one-dimensional domain is a horizontal line through the center of the 
+unit square. As such, the size of $A$ is proportional to $n^2$ while the size of
+the Schur complement grows linearly in $n$.
+
+\section*{Eigenvalues}
+% Compilation
+In order to construct $H^{1/2}$ we solve a generalized eigevalue problem(GEVP) $Bx=\lambda
+M x$ with $B$, $M$ the stiffness and mass matrices of CG$_1$ spaces over the
+one-dimensional domain. The system is solved via a call to LAPACK.DSYGVD 
+routine. Its performance depends heavily on how LAPACK is compiled and unoptimized
+versions can lead to a factor ten loss in performance. This can be seen in table
+\ref{tab:eig_scale} which compares execution times of Python and Julia programs that
+solve the eigenvalue problem. Both languages call LAPACK but only the latter uses
+an optimized version of the library. Note that it takes about 20 seconds to
+construct the norm operator for \colorbox{cyan!50}{problems} of order milion
+uknowns ($\approx$16 million) that could still be potentially run in serial.
+%
+\begin{table}[ht]
+  \caption{Exacution times for GEVP with unoptimized(Python) and optimized(Julia)
+  version of LAPACK. Colors represent the size of the two-dimensional Laplace
+  problem: \colorbox{lime!50}{small scale}, \colorbox{cyan!50}{large scale
+  (still serial)} and \colorbox{red!50}{HPC}.
+}
+\label{tab:eig_scale}
+\footnotesize{
+\begin{tabular}{l|SSSLLLPP}
+$n=2^i$              &    7 &    8 &    9 &   10 &   11 & 12     & 13      & 14\\
+\hline
+Python $\left[s\right]$ & 0.01 & 0.05 & 0.36 & 3.21 &22.89 & 151.82 & 1032.08 & 7385.45\\
+                     & 2.19 & 2.65 & 2.96 & 3.17 & 2.84 & 2.73   & 2.77    & 2.84\\
+\hline
+Julia $\left[s\right]$ & 0.00 & 0.01 & 0.05 & 0.33 & 2.38 & 17.42  & 126.43  & 955.12\\
+                    & 1.46 & 1.78 & 2.05 & 2.69 & 2.85 & 2.87   & 2.86    & 2.92\\
+\end{tabular}
+}
+\end{table}
+%
+
+% Scaling
+Table \ref{tab:eig_scale} shows that LAPACK.DSYGVD is approximately cubic in the
+size of the eigenvalue problem. The only feature of the system that the
+algorithm exploits is its symmetry. The tridiagonal propery is discarded. This
+seems to be a significant loss in the light of the fact that there exist 
+$\mathcal{O}(n^2)$ and $\mathcal{O}(n\log{n})$ algorithms for eigenvalue
+problems(EVP) with symmetric tridiagonal matrices. The algorithm with quadratic
+scaling is provided by LAPACK's DSTEV routine, cf. table \ref{tab:eig_scale_std}.
+%
+
+\begin{table}[ht]
+\caption{Exacution times for EVP with optimized LAPACK.DSTEV}
+\label{tab:eig_scale_std}
+\footnotesize{
+\begin{tabular}{l|SSSLLLPP}
+$n=2^i$                 &    7 &    8 &    9 &   10 &   11 & 12     & 13      & 14\\
+\hline
+ Julia $\left[s\right]$ & 0.00 & 0.01 & 0.02 & 0.08 & 0.32 & 1.45 & 7.73 & 50.59\\
+                        & 1.79 & 3.09 & 0.81 & 2.09 & 1.99 & 2.19 & 2.42 & 2.71\\
+\end{tabular}
+}
+\end{table}
+%
+
+% Better: symtridiagonal but ...
+If we were able to solve GEVP in $\mathcal{O}(n^2)$ steps the scaling of the
+algorithm would match that of an optimal solver for the system $Ax=b$. However,
+routines implementing more efficient algorithms for GEVP with both matrices
+being symmetric and tridiagonal are scarce. In this situation we shall try to
+transform our GEVP to EVP without damaging properties of the system. 
+
+We first note that $M^{-1} B$ is certainly not sparse. Moreover it is not a symmetric 
+matrix. One way to keep the tridiagonal property of the transformed GEVP is to lump 
+the mass matrix $M$. Let $\hat{M}$ be the lumped mass matrix. Then $\hat{M}^{-1} B$ 
+is indeed tridiagonal. Unfortunately the matrix is not symmetric and it remains to 
+be seen if there exist efficient algorithms to solve the lumped EVP. That said,
+in our application the quest for such routines would be redundant if the lumping
+resulted in a norm operator which is not spectrally equivalent with the Schur
+complement. Let us there for investigate the effect of the transformation.
+
+\section*{Lumping effect}
+Let $S=TA^{-1}\dual{T}$ denote the symmetric positive definite matrix that is the
+negative Shur complement of our linear system. Matrix $H^{1/2}$ shall be the
+matrix representation of the equally named norm operator constructed from the
+generalized eigenvalue problem. Finally $\tilde{H}^{1/2}$ will be the matrix 
+constructed from eigenpairs of the eigenvalue problem with the lumped mass
+matrix. We remark that we wish to demonstrate that there exist constants $c, C>0$
+independent of $n$ such that for all $x\in\reals^n$
+%
+\begin{equation}\label{eq:equiv}
+  c\dual{x} H x \leq \dual{x} S x \leq  C\dual{x} H c.
+\end{equation}
+Here $H$ is the placeholder for $H^{1/2}$ and $\tilde{H}^{1/2}$ and the
+constants for both operators can be different.
+
+Table \ref{tab:lump} shows that both $H^{1/2}$ and $\tilde{H}^{1/2}$ are
+spectrally equivalent with $S$. The effect of lumping seems to be that $c$ is
+shifted from value 0.2 to approx $1/3$. The upper bound $C$ stays close to
+$1/2$. The table also shows that solving the EVP due to lumping is cheaper. 
+%
+\begin{table}[ht]
+  \caption{Spectral equivalence constants \eqref{eq:equiv} for matrices
+  $H^{1/2}$ and $\tilde{H}^{1/2}$ stemming respectively from the generalized
+eigenvalue problem $Bx=\lambda M x$ and the eigenvalue problem
+$\tilde{M}^{-1}Bx=\lambda x$.}
+\label{tab:lump}
+\footnotesize{
+\begin{tabular}{l|ccccccc}
+$n=2^i$              &     5 &     6 &     7 &     8 &     9 & 10    & 11\\
+\hline
+$c, H^{1/2}$         & 0.205 & 0.204 & 0.204 & 0.204 & 0.204 & 0.204 & 0.204\\
+$C, H^{1/2}$         & 0.494 & 0.498 & 0.499 & 0.500 & 0.500 & 0.500 & 0.500\\
+GEVP $\left[s\right]$&  0.00 & 0.00  & 0.01  & 0.05  & 0.39  & 3.64  & 25.95\\
+\hline
+$c, \tilde{H}^{1/2}$ & 0.333 & 0.333 & 0.333 & 0.333 & 0.333 & 0.333 & 0.333\\
+$C, \tilde{H}^{1/2}$ & 0.496 & 0.499 & 0.500 & 0.500 & 0.500 & 0.500 & 0.500\\
+EVP $\left[s\right]$ & 0.00  & 0.00  & 0.01  & 0.03  & 0.17  & 1.20  & 9.48\\
+\end{tabular}
+}
+\end{table}
+
+\section*{Performance} We have seen that lumping decreases construction time of
+the norm operator without ruining the properties of the resulting matrix as a
+Schur complement preconditioner. The search for an efficient way of solving the
+EVP is therefore partially justified. It remains to see how the current
+construction times compare with the other computationally demanding tasks
+required to solve the coupled multiphysics problem: construction of the
+algebraic multigrid preconditioner for $A$ matrix and solution of $Ax=b$ with
+preconditioner conjugate gradient method. For the latter we enforce rather
+strict convergence criterion - absolute error of $10^{-14}$.
+
+Table \ref{tab:performance} shows comparison of the aforementioned tasks, AMG
+and CG, with solution times of GEVP and EVP. We note that the timings of
+eigenvalue solvers are obtained with the unoptimized LAPACK routines. Despite
+that, the aggregate AMG and CG time is comparable with the EVP. With the exception 
+of $n=11$, where $2049$ eigenpairs are obtained, the same holds for GEVP. If we
+substitute for GEVP and EVP times the values from table \ref{tab:eig_scale} it
+becomes rather evident that the eigenvalue construction of our preconditioner is
+\textit{not} a significant bottleneck.
+%
+\begin{table}[ht]
+  \caption{Timings for algebraic multigrid preconditioner of A, AMG preconditioned 
+  conjugate gradient solve of $Ax=b$ and solvers of (generalized)eigenvalue
+  problems.}
+\label{tab:performance}
+\footnotesize{
+\begin{tabular}{l|ccccccc}
+$n=2^i$                 &  7    &     8 &     9 & 10    & 11\\
+\hline
+AMG   $\left[s\right]$  & 0.03  &  0.05 &  0.22 &  0.87 & 3.50\\
+CG    $\left[s\right]$  & 0.02  &  0.10 &  0.46 &  1.91 & 7.70\\
+EVP   $\left[s\right]$  & 0.01  & 0.03  & 0.17  & 1.20  & 9.48\\
+GEVP  $\left[s\right]$  & 0.01  & 0.05  & 0.39  & 3.64  & 25.95\\
+\end{tabular}
+}
+\end{table}
+
+
+\end{document}

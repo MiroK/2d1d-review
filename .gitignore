@@ -1,2 +1,11 @@
 *.pyc
 *.sw*
+
+*.x
+
+*.dvi
+*.pdf
+*.aux
+*.log
+*.bbl
+*.blg
