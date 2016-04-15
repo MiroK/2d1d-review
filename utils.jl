@@ -35,7 +35,7 @@ end
 
 """Lumping for general matrix."""
 function lumped{T<:Number}(M::Matrix{T}, inverse=false)
-    d = Vector{T}([sum(row) for row in rows(M)])
+    d = sum(M, 2)
     Ml = inverse ? Diagonal(1./d) : Diagonal(d)
 end
 
