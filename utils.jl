@@ -30,13 +30,16 @@ end
 function lumped{T<:Number}(M::SymTridiagonal{T}, inverse=false)
     dv, ev = M.dv, M.ev
     d = Vector{T}([first(dv)+first(ev); ev[1:end-1]+dv[2:end-1]+ev[2:end]; last(dv)+last(ev)])
-    Ml = inverse ? Diagonal(1./d) : Diagonal(d)
+    d = inverse ? d.^(-1) : d
+    Diagonal(d)
 end
 
 """Lumping for general matrix."""
 function lumped{T<:Number}(M::Matrix{T}, inverse=false)
     d = sum(M, 2)
-    Ml = inverse ? Diagonal(1./d) : Diagonal(d)
+    d = reshape(d, length(d))
+    d = inverse ? d.^(-1) : d
+    Diagonal(d)
 end
 
 """Lumping for symmetric matrix."""

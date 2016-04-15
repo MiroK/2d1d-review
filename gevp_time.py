@@ -46,7 +46,7 @@ def get_1d_matrices(mesh, N):
     return A.array(), M.array()
 
 
-def python_timings(mesh, Nrange):
+def python_timings(mesh, Nrange, lumped=False):
     '''Run acorss meshes solving GEVP and recording their sizes and exec time.'''
     times = []
     sizes = []
@@ -56,9 +56,16 @@ def python_timings(mesh, Nrange):
 
         ts = []
         # Solving the eigenvalue problem
-        t = Timer('GEVP')
-        eigw, eigv = eigh(A, M)
-        ts.append(t.stop())
+        if lumped:
+            t = Timer('GEVP')
+            M = np.sum(M, 1)
+            M = np.diag(M)
+            eigw, eigv = eigh(A, M)
+            ts.append(t.stop())
+        else:
+            t = Timer('GEVP')
+            eigw, eigv = eigh(A, M)
+            ts.append(t.stop())
 
         # Assembling the preconditioner
         t = Timer('ASSEMBLE')

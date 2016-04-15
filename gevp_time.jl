@@ -7,9 +7,9 @@ unshift!(PyVector(pyimport("sys")["path"]), "")
 # Let there be fenics
 @pyimport gevp_time as fenics
 
-lumped = false
-mesh = "uniform"
-Nrange = 2:10
+lumped = true
+# mesh, Nrange = "uniform", 2:10
+mesh, Nrange = "nonuniform", 0:6
 
 times = []
 sizes = []
