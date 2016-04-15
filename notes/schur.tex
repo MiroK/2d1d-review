@@ -13,13 +13,13 @@
 \usepackage{standalone}
 \usepackage{url}
 
-
+%%%%%%% COLORS
 \usepackage{xcolor, colortbl}
-
 \newcolumntype{S}{>{\columncolor{lime!50}}c}         % serial small
 \newcolumntype{L}{>{\columncolor{cyan!50}}c}        % serial large
-\newcolumntype{P}{>{\columncolor{red!50}}c}        % parallel
-               
+\newcolumntype{P}{>{\columncolor{red!50}}c}        % parallel& 
+%%%%%%%
+
 \newcommand{\reals}{\mathbb{R}}
 \newcommand{\set}[1]{\{#1\}}
 \newcommand{\abs}[1]{\lvert#1\rvert}
@@ -72,25 +72,27 @@ versions can lead to a factor ten loss in performance. This can be seen in table
 \ref{tab:eig_scale} which compares execution times of Python and Julia programs that
 solve the eigenvalue problem. Both languages call LAPACK but only the latter uses
 an optimized version of the library. Note that it takes about 20 seconds to
-construct the norm operator for \colorbox{cyan!50}{problems} of order milion
+construct the norm operator for
+{\setlength{\fboxsep}{0pt}\colorbox{cyan!50}{problems}} of order milion
 uknowns ($\approx$16 million) that could still be potentially run in serial.
 %
 \begin{table}[ht]
-  \caption{Exacution times for GEVP with unoptimized(Python) and optimized(Julia)
-  version of LAPACK. Colors represent the size of the two-dimensional Laplace
-  problem: \colorbox{lime!50}{small scale}, \colorbox{cyan!50}{large scale
-  (still serial)} and \colorbox{red!50}{HPC}.
+  \caption{Exacution times and complexity for GEVP with unoptimized(Python) and 
+    optimized(Julia) version of LAPACK. Colors represent the size of the 
+    two-dimensional Laplace problem: {\setlength{\fboxsep}{0pt}\colorbox{lime!50}{small scale}}, 
+  {\setlength{\fboxsep}{0pt}\colorbox{cyan!50}{large scale (still serial)}} and 
+  {\setlength{\fboxsep}{0pt}\colorbox{red!50}{HPC}}.
 }
 \label{tab:eig_scale}
 \footnotesize{
-\begin{tabular}{l|SSSLLLPP}
-$n=2^i$              &    7 &    8 &    9 &   10 &   11 & 12     & 13      & 14\\
+\begin{tabular}{lr|SSSLLLPP}
+\multicolumn{2}{l|}{$n=2^i$}    &    7 &    8 &    9 &   10 &   11 & 12     & 13      & 14\\
 \hline
-Python $\left[s\right]$ & 0.01 & 0.05 & 0.36 & 3.21 &22.89 & 151.82 & 1032.08 & 7385.45\\
-                     & 2.19 & 2.65 & 2.96 & 3.17 & 2.84 & 2.73   & 2.77    & 2.84\\
+Python & $\left[s\right]$       & 0.01 & 0.05 & 0.36 & 3.21 &22.89 & 151.82 & 1032.08 & 7385.45\\
+cmplx  &                        & 2.19 & 2.65 & 2.96 & 3.17 & 2.84 & 2.73   & 2.77    & 2.84\\
 \hline
-Julia $\left[s\right]$ & 0.00 & 0.01 & 0.05 & 0.33 & 2.38 & 17.42  & 126.43  & 955.12\\
-                    & 1.46 & 1.78 & 2.05 & 2.69 & 2.85 & 2.87   & 2.86    & 2.92\\
+Julia  & $\left[s\right]$       & 0.00 & 0.01 & 0.05 & 0.33 & 2.38 & 17.42  & 126.43  & 955.12\\
+cmplx  &                        & 1.46 & 1.78 & 2.05 & 2.69 & 2.85 & 2.87   & 2.86    & 2.92\\
 \end{tabular}
 }
 \end{table}
@@ -107,14 +109,14 @@ scaling is provided by LAPACK's DSTEV routine, cf. table \ref{tab:eig_scale_std}
 %
 
 \begin{table}[ht]
-\caption{Exacution times for EVP with optimized LAPACK.DSTEV}
+\caption{Exacution times and complexity for EVP with optimized LAPACK.DSTEV}
 \label{tab:eig_scale_std}
 \footnotesize{
 \begin{tabular}{l|SSSLLLPP}
 $n=2^i$                 &    7 &    8 &    9 &   10 &   11 & 12     & 13      & 14\\
 \hline
- Julia $\left[s\right]$ & 0.00 & 0.01 & 0.02 & 0.08 & 0.32 & 1.45 & 7.73 & 50.59\\
-                        & 1.79 & 3.09 & 0.81 & 2.09 & 1.99 & 2.19 & 2.42 & 2.71\\
+Julia $\left[s\right]$ & 0.00 & 0.01 & 0.02 & 0.08 & 0.32 & 1.45 & 7.73 & 50.59\\
+cmplx                  & 1.79 & 3.09 & 0.81 & 2.09 & 1.99 & 2.19 & 2.42 & 2.71\\
 \end{tabular}
 }
 \end{table}
@@ -146,7 +148,7 @@ matrix. We remark that we wish to demonstrate that there exist constants $c, C>0
 independent of $n$ such that for all $x\in\reals^n$
 %
 \begin{equation}\label{eq:equiv}
-  c\dual{x} H x \leq \dual{x} S x \leq  C\dual{x} H c.
+  c\dual{x} H x \leq \dual{x} S x \leq  C\dual{x} H x.
 \end{equation}
 Here $H$ is the placeholder for $H^{1/2}$ and $\tilde{H}^{1/2}$ and the
 constants for both operators can be different.
@@ -163,16 +165,16 @@ eigenvalue problem $Bx=\lambda M x$ and the eigenvalue problem
 $\tilde{M}^{-1}Bx=\lambda x$.}
 \label{tab:lump}
 \footnotesize{
-\begin{tabular}{l|ccccccc}
-$n=2^i$              &     5 &     6 &     7 &     8 &     9 & 10    & 11\\
+\begin{tabular}{lr|ccccccc}
+\multicolumn{2}{l|}{$n=2^i$}              &     5 &     6 &     7 &     8 &     9 & 10    & 11\\
 \hline
-$c, H^{1/2}$         & 0.205 & 0.204 & 0.204 & 0.204 & 0.204 & 0.204 & 0.204\\
-$C, H^{1/2}$         & 0.494 & 0.498 & 0.499 & 0.500 & 0.500 & 0.500 & 0.500\\
-GEVP $\left[s\right]$&  0.00 & 0.00  & 0.01  & 0.05  & 0.39  & 3.64  & 25.95\\
+\multicolumn{2}{l|}{$c, H^{1/2}$}         & 0.205 & 0.204 & 0.204 & 0.204 & 0.204 & 0.204 & 0.204\\
+\multicolumn{2}{l|}{$C, H^{1/2}$}         & 0.494 & 0.498 & 0.499 & 0.500 & 0.500 & 0.500 & 0.500\\
+GEVP & $\left[s\right]$                   &  0.00 & 0.00  & 0.01  & 0.05  & 0.39  & 3.64  & 25.95\\
 \hline
-$c, \tilde{H}^{1/2}$ & 0.333 & 0.333 & 0.333 & 0.333 & 0.333 & 0.333 & 0.333\\
-$C, \tilde{H}^{1/2}$ & 0.496 & 0.499 & 0.500 & 0.500 & 0.500 & 0.500 & 0.500\\
-EVP $\left[s\right]$ & 0.00  & 0.00  & 0.01  & 0.03  & 0.17  & 1.20  & 9.48\\
+\multicolumn{2}{l|}{$c, \tilde{H}^{1/2}$} & 0.333 & 0.333 & 0.333 & 0.333 & 0.333 & 0.333 & 0.333\\
+\multicolumn{2}{l|}{$C, \tilde{H}^{1/2}$} & 0.496 & 0.499 & 0.500 & 0.500 & 0.500 & 0.500 & 0.500\\
+EVP & $\left[s\right]$                    & 0.00  & 0.00  & 0.01  & 0.03  & 0.17  & 1.20  & 9.48\\
 \end{tabular}
 }
 \end{table}
@@ -202,13 +204,13 @@ becomes rather evident that the eigenvalue construction of our preconditioner is
   problems.}
 \label{tab:performance}
 \footnotesize{
-\begin{tabular}{l|ccccccc}
-$n=2^i$                 &  7    &     8 &     9 & 10    & 11\\
+\begin{tabular}{lr|ccccccc}
+\multicolumn{2}{l|}{$n=2^i$} &  7    &     8 &     9 & 10    & 11\\
 \hline
-AMG   $\left[s\right]$  & 0.03  &  0.05 &  0.22 &  0.87 & 3.50\\
-CG    $\left[s\right]$  & 0.02  &  0.10 &  0.46 &  1.91 & 7.70\\
-EVP   $\left[s\right]$  & 0.01  & 0.03  & 0.17  & 1.20  & 9.48\\
-GEVP  $\left[s\right]$  & 0.01  & 0.05  & 0.39  & 3.64  & 25.95\\
+AMG   & $\left[s\right]$     & 0.03  &  0.05 &  0.22 &  0.87 & 3.50\\
+CG    & $\left[s\right]$     & 0.02  &  0.10 &  0.46 &  1.91 & 7.70\\
+EVP   & $\left[s\right]$     & 0.01  & 0.03  & 0.17  & 1.20  & 9.48\\
+GEVP  & $\left[s\right]$     & 0.01  & 0.05  & 0.39  & 3.64  & 25.95\\
 \end{tabular}
 }
 \end{table}

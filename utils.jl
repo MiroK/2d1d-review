@@ -27,10 +27,21 @@ function matrices(n, representation)
 end
 
 """Lumping for symmetric tridiagonal matrix."""
-function lumped{T<:Number}(M::SymTridiagonal{T})
+function lumped{T<:Number}(M::SymTridiagonal{T}, inverse=false)
     dv, ev = M.dv, M.ev
-    d = [first(dv)+first(ev); ev[1:end-1]+dv[2:end-1]+ev[2:end]; last(dv)+last(ev)]
-    Ml = Diagonal(d)
+    d = Vector{T}([first(dv)+first(ev); ev[1:end-1]+dv[2:end-1]+ev[2:end]; last(dv)+last(ev)])
+    Ml = inverse ? Diagonal(1./d) : Diagonal(d)
+end
+
+"""Lumping for general matrix."""
+function lumped{T<:Number}(M::Matrix{T}, inverse=false)
+    d = Vector{T}([sum(row) for row in rows(M)])
+    Ml = inverse ? Diagonal(1./d) : Diagonal(d)
+end
+
+"""Lumping for symmetric matrix."""
+function lumped{T<:Number}(M::Symmetric{T}, inverse=false)
+    lumped(full(M), inverse)
 end
 
 # Convenience inner product
