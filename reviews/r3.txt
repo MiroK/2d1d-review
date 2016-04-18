@@ -1,0 +1,17 @@
+1. Comment of praciticability of Qcap: how expensive computing the eigenvalues to
+  the application of the preconditioner. Compare approaches with time.
+2. Comment on other possible preconditioners, e.g. BPX
+
+3. Bullets 3, 4, 5 - fix math
+4. Bullet 6 comment on effect epislon in tabs 3.2 and 4.2
+5. 3d example
+6. Minor fixes (mostly typos)
+
+------------------------------------------------------------------------------
+
+3., 4., 6. -> okay ...
+5. -> no that's a next paper
+1. Compare Vcap, Qcap
+2. Resarch other preconditioners. We will implement Schur complement (which
+realizes the Neuamann to Dirichlet map?) but for the others the comparison will
+be in terms of O(f(n, m)) scaling

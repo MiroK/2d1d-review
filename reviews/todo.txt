@@ -1,0 +1,20 @@
+For the theoretical part two things are needed:
+	-r2.3 algrabraic multiplicity like malkus
+	-r3.2 and somewhat r2.4 research other preconditioners and their
+	 complexity
+        - PETSc schur complement preconditioner?
+
+For the computational part:
+	->need to get timings for Qcap and Vcap: how much AMG costs to construct
+         and apply, (how much CG costs), how much eigenvalue cost, how much
+         action of the full preconditioner cost-> answer r2.1, r2.2, r3.1
+	-- Then we can make comparison between preconditioners r3.1
+        - Implement some third preconditioner
+        -- Make comparison -> r3.4
+        
+    All the above report as some tables with details on sizes and timings r2.5
+
+        -> sizes of problems are not deemed smalll - push serial Ax=b to ~12mil,
+        need meshes for that r2.6
+        -> iterative eigenvalue solver so that 10^5 is possible and for larger
+        CGN

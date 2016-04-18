@@ -1,0 +1,14 @@
+1. I give a significant weight to the criticism that one of the two
+  preconditioners is potentially impractical due to the need to solve an
+  eigenvalue problem.
+
+2. I also agree with the criticism that insufficient details are given on
+  computational costs and that larger problems may need to be solved to
+  demonstrate efficiency of the proposed preconditioners.  [BOTH]
+
+3. Two months to complete the review. By 9/6/2016
+
+------------------------------------------------------------------------------
+
+-> The above introduces no additional requirements to those of the reviewers.
+

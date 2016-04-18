@@ -1,0 +1,27 @@
+1. Qcap costly
+2. It is necessary to provide a detailed computational cost aanlysis of the
+  preconditioners, and especially the Qcap preconditioner
+3. I wonder if it would be possible to performa more complete eigevnalue analysis
+  of the preconditioned matrix, i.e., to solve the generalized eigenvalue
+problem analitically to the extend possible and attempt to reveal algebraic
+moltiplicity of the eigenvalues.
+4. Sparse in comparison to other effective preconditioning approaches.
+5. More info on numerical systems. Sizes, timings
+6. Demonstrate efficiency on larger systems
+7. 3d example
+
+------------------------------------------------------------------------------
+
+1., 2. -> Add timings to Vcap, Qcap preconditioner measuring AMG cstr, AMG
+action, CG action (as in precond block), timing action of the preconditioner,
+eig solve, eig action
+
+3. -> Attempt this with Malkus
+
+4. -> Add comparision to Schur complement preconditioner, timings and iters
+
+5. -> Okay make tables with timings/sizes info
+
+6. -> The largest problem in serial is ..., gun for 4mil and more
+
+7. -> No that is a next paper
