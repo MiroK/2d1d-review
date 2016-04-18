@@ -1,4 +1,7 @@
 module Utils
+
+export ⋆
+
 using Base.Test
 
 """
@@ -44,7 +47,7 @@ end
 
 """Lumping for symmetric matrix."""
 function lumped{T<:Number}(M::Symmetric{T}, power::Real=1.)
-    lumped(full(M), inverse)
+    lumped(full(M), power)
 end
 
 # Convenience inner product
@@ -100,12 +103,40 @@ done(it::rows, state) = done(it.indices, state)
 
 length(it::rows) = length(it.indices)
 
-# Specialize product for Diag*SymTridiagonal -> Tridiagonal
+# This is motivation for the defs below
 # FIXME is there a a clever(fast) way of computing eigs here? Note that this
 # comes from Ax = lambda diag(B)*x (1) where A, B are Sym3 so equally good
 # answer for us is to solve (1) w/out ruining the symmetry. Finally the best
 # answer is to solve (1) with full B. 
+
 import Base.*
+
+
+# Specialize Tridiagonal*Diagonal -> Tridiagonal
+function *{T<:Number, S<:Number}(A::Tridiagonal{T}, B::Diagonal{S})
+    dl, d, du = A.dl, A.d, A.du
+    dB = B.diag
+
+    upper = du.*dB[2:end]
+    diag = d.*dB
+    lower = dl.*dB[1:end-1]
+
+    Tridiagonal(lower, diag, upper)
+end
+
+# Specialize Diagonal*Tridiagonal -> Tridiagonal
+function *{T<:Number, S<:Number}(A::Diagonal{T}, B::Tridiagonal{S})
+    dA = A.diag
+    dl, d, du = B.dl, B.d, B.du
+
+    upper = dA[1:end-1].*du
+    diag = dA.*d
+    lower = dA[2:end].*dl
+
+    Tridiagonal(lower, diag, upper)
+end
+
+# Specialize product for Diag*SymTridiagonal -> Tridiagonal
 function *{T<:Number, S<:Number}(A::Diagonal{T}, B::SymTridiagonal{S})
     d = A.diag
     dv, ev = B.dv, B.ev
@@ -114,6 +145,28 @@ function *{T<:Number, S<:Number}(A::Diagonal{T}, B::SymTridiagonal{S})
     diag = d.*dv
     lower = d[2:end].*ev
     Tridiagonal(lower, diag, upper)
+end
+
+# Specialize product for SymTridiagonal*Diag -> Tridiagonal
+function *{T<:Number, S<:Number}(A::SymTridiagonal{T}, B::Diagonal{S})
+    d = B.diag
+    dv, ev = A.dv, A.ev
+
+    upper = d[2:end].*ev
+    diag = d.*dv
+    lower = d[1:end-1].*ev
+    Tridiagonal(lower, diag, upper)
+end
+
+# Let's make special inner product for D*A*D.T with diagonal D and symmetric
+# tridiagonal A
+function ⋆{T<:Number, S<:Number}(A::SymTridiagonal{T}, B::Diagonal{S})
+    dv, ev = A.dv, A.ev
+    d = B.diag
+
+    upper = ev.*d[2:end].*d[1:end-1]
+    diag = dv.*d.*d
+    SymTridiagonal(diag, upper)
 end
 
 # Mat*SymTridiagonal*Mat.T is SymTridiagonal
@@ -175,8 +228,30 @@ function test()
     A = Diagonal(rand(10))
     B = SymTridiagonal(rand(10), rand(9))
     C = A*B
-
+    @test typeof(C) == Tridiagonal{eltype(A)}
     C0 = full(A)*full(B)
+    @test_approx_eq_eps norm(C-C0) 0. 1E-13
+
+    C = B*A
+    @test typeof(C) == Tridiagonal{eltype(A)}
+    C0 = full(B)*full(A)
+    @test_approx_eq_eps norm(C-C0) 0. 1E-13
+
+    C = B⋆A
+    @test typeof(C) == SymTridiagonal{eltype(A)}
+    C0 = A*(B*A)
+    @test_approx_eq_eps norm(full(C-C0)) 0. 1E-13    
+    # NOTE C-C0 is tridiag and svdvals! fails hence conversion to full is needed
+
+    B = Tridiagonal(rand(9), rand(10), rand(9))
+    C = A*B
+    @test typeof(C) == Tridiagonal{eltype(A)}
+    C0 = full(A)*full(B)
+    @test_approx_eq_eps norm(C-C0) 0. 1E-13
+
+    C = B*A
+    @test typeof(C) == Tridiagonal{eltype(A)}
+    C0 = full(B)*full(A)
     @test_approx_eq_eps norm(C-C0) 0. 1E-13
 
     # is*

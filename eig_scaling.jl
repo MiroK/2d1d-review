@@ -1,5 +1,5 @@
 include("utils.jl")
-import Utils
+using Utils
 
 """
 Scaling of algorithms for (generalized)hermitian eiganvalue problems. Julia
@@ -16,11 +16,37 @@ function scaling_eig(imax, representation, problem=:hermitian, save=false)
             tic()
             eigw, eigv = eig(A)
             dt = toq()
-        else
+
+        elseif problem == :hermitian_lumped
+            tic()
+            Minv = Utils.lumped(M, -1.)
+            A = Minv*A
+            @assert typeof(A) == Tridiagonal{eltype(A)}
+            A = full(A)
+            eigw, eigv = eig(A)
+            dt = toq()
+
+        elseif problem == :hermitian_lumped_sym
+            tic()
+            Minv = Utils.lumped(M, -0.5)
+            A = ⋆(A, Minv)
+            @assert typeof(A) == SymTridiagonal{eltype(A)}
+            eigw, eigv = eig(A)
+            dt = toq()
+
+        elseif problem == :gen_hermitian_lumped
+            tic()
+            M = Symmetric(full(Utils.lumped(M)))
+            eigw, eigv = eig(A, M)
+            dt = toq()
+
+        elseif problem == :gen_hermitian
             tic()
             eigw, eigv = eig(A, M)
-
             dt = toq()
+
+        else
+            @assert false
         end
 
         lmin, lmax = minimum(eigw), maximum(eigw)
@@ -69,5 +95,21 @@ if length(ARGS) in (1, 2)
         # LAPACK::SymmetricMatrices::Eigenvalue dsygvd -> same as python
         println("eig(Symmetric(A), Symmetric(M))")
         scaling_eig(imax, :Symmetric, :gen_hermitian, save)
+
+    elseif problem == 5
+        # LAPACK::SymmetricMatrices::Eigenvalue dsygvd -> same as python
+        println("eig(Symmetric(A), Symmetric(lumped(M)))")
+        scaling_eig(imax, :Symmetric, :gen_hermitian_lumped, save)
+    
+    elseif problem == 6
+        # LAPACK::GeneralMatrices::Eigenvalue dgeev
+        println("eig(inv(lumped(M))*A)")
+        scaling_eig(imax, :SymTridiagonal, :hermitian_lumped, save)
+
+    elseif problem == 7
+        # LAPACK::SymmetricMatrices::Eigenvalue dsyevd -> same as python
+        println("eig(A symmult lumped(M, -0.5)")
+        scaling_eig(imax, :SymTridiagonal, :hermitian_lumped_sym, save)
+
     end
 end
