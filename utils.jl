@@ -27,23 +27,23 @@ function matrices(n, representation)
 end
 
 """Lumping for symmetric tridiagonal matrix."""
-function lumped{T<:Number}(M::SymTridiagonal{T}, inverse=false)
+function lumped{T<:Number}(M::SymTridiagonal{T}, power::Real=1.)
     dv, ev = M.dv, M.ev
     d = Vector{T}([first(dv)+first(ev); ev[1:end-1]+dv[2:end-1]+ev[2:end]; last(dv)+last(ev)])
-    d = inverse ? d.^(-1) : d
+    d = d.^power
     Diagonal(d)
 end
 
 """Lumping for general matrix."""
-function lumped{T<:Number}(M::Matrix{T}, inverse=false)
+function lumped{T<:Number}(M::Matrix{T}, power::Real=1.)
     d = sum(M, 2)
     d = reshape(d, length(d))
-    d = inverse ? d.^(-1) : d
+    d = d.^power
     Diagonal(d)
 end
 
 """Lumping for symmetric matrix."""
-function lumped{T<:Number}(M::Symmetric{T}, inverse=false)
+function lumped{T<:Number}(M::Symmetric{T}, power::Real=1.)
     lumped(full(M), inverse)
 end
 
@@ -101,7 +101,7 @@ done(it::rows, state) = done(it.indices, state)
 length(it::rows) = length(it.indices)
 
 # Specialize product for Diag*SymTridiagonal -> Tridiagonal
-# FIXME is there a a clever(fast) way of computing eigs here. Note that this
+# FIXME is there a a clever(fast) way of computing eigs here? Note that this
 # comes from Ax = lambda diag(B)*x (1) where A, B are Sym3 so equally good
 # answer for us is to solve (1) w/out ruining the symmetry. Finally the best
 # answer is to solve (1) with full B. 
@@ -115,6 +115,9 @@ function *{T<:Number, S<:Number}(A::Diagonal{T}, B::SymTridiagonal{S})
     lower = d[2:end].*ev
     Tridiagonal(lower, diag, upper)
 end
+
+# Mat*SymTridiagonal*Mat.T is SymTridiagonal
+# TODO + test
 
 # Probability norm. Generate a bunch of random vectors and see if about the l^2
 # norm of mat*vec

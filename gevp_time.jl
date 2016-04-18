@@ -7,9 +7,9 @@ unshift!(PyVector(pyimport("sys")["path"]), "")
 # Let there be fenics
 @pyimport gevp_time as fenics
 
-lumped = true
-# mesh, Nrange = "uniform", 2:10
-mesh, Nrange = "nonuniform", 0:6
+lumped = false
+mesh, Nrange = "uniform", 2:10
+# mesh, Nrange = "nonuniform", 0:6
 
 times = []
 sizes = []
@@ -39,13 +39,15 @@ for N in Nrange
         # A = Mlinv*A
         # eigw, eigv = eig(A)
         # push!(ts, toq())
-    else
+    if lumped == "no"
         # Convert to symmetric
         A, M = map(Symmetric, mats)
 
         tic()
         eigw, eigv = eig(A, M)
         push!(ts, toq())
+
+    elseif lumped == ""
     end
 
     @assert all(eigw .> 0)
@@ -66,7 +68,7 @@ for N in Nrange
     push!(sizes, size(A, 1))
 
 
-    println("$(sizes[end]) $(times[end])")
+    println("$(sizes[end]) $(times[end]) $(minimum(eigw)) $(maximum(eigw))")
 end
 
 record = zeros((length(sizes), 4))
