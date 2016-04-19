@@ -1,5 +1,4 @@
 # Scaling of eigvalsh
-from dolfin import *
 from scipy.sparse import diags
 from scipy.linalg import toeplitz, eigh, eig
 import numpy as np
@@ -9,6 +8,7 @@ import time
 
 
 def system0(n):
+    from dolfin import *
     mesh = UnitIntervalMesh(n)
     V = FunctionSpace(mesh, 'CG', 1)
     u = TrialFunction(V)
