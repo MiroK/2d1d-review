@@ -4,6 +4,7 @@ from scipy.sparse import diags
 from scipy.linalg import toeplitz, eigh, eig
 import numpy as np
 import subprocess
+import psutil
 import time
 
 
@@ -120,7 +121,8 @@ def scaling_eigvalsh(problem='hermitian', imax=15):
 
         dt0 = dt
         data.append([A.shape[0], dt, rate, lmin, lmax])
-    np.savetxt('./data/py_%s_%s.txt' % (problem, cpu_type()),
+        mem = '%.2f' % (psutil.virtual_memory().total/10.**9)
+    np.savetxt('./data/py_%s_%s_%s.txt' % (problem, cpu_type(), mem),
                np.array(data),
                header='Ashape, CPU time, rate, lmin, lmax')
 

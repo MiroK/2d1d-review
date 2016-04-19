@@ -60,7 +60,9 @@ function scaling_eig(imax, representation, problem=:hermitian, save=false)
         dt0 = dt
         data[i, :] = [size(A, 1), dt, rate, lmin, lmax]
     end
-    f = "./data/jl_$(problem)_$(representation)_$(first(Sys.cpu_info()).model).txt"
+    cpu = first(Sys.cpu_info()).model
+    mem = round(Int(Sys.total_memory())/10^9, 2)       # At GB
+    f = "./data/jl_$(problem)_$(representation)_$(cpu)_$(mem).txt"
     save &&  writedlm(open(f, "w"), data)
 end
 
