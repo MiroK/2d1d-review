@@ -17,7 +17,7 @@ function scaling_eig(imax, representation, problem=:hermitian, save=false)
             eigw, eigv = eig(A)
             dt = toq()
 
-        elseif problem == :hermitian_lumped
+        elseif problem == :lumped
             tic()
             Minv = Utils.lumped(M, -1.)
             A = Minv*A
@@ -26,7 +26,7 @@ function scaling_eig(imax, representation, problem=:hermitian, save=false)
             eigw, eigv = eig(A)
             dt = toq()
 
-        elseif problem == :hermitian_lumped_sym
+        elseif problem == :hermitian_lumped
             tic()
             Minv = Utils.lumped(M, -0.5)
             A = ⋆(A, Minv)
@@ -60,31 +60,32 @@ function scaling_eig(imax, representation, problem=:hermitian, save=false)
         dt0 = dt
         data[i, :] = [size(A, 1), dt, rate, lmin, lmax]
     end
-    save && writedlm(open("./data/jl_$(problem)_$(representation).txt", "w"), data)
+    f = "./data/jl_$(problem)_$(representation)_$(first(Sys.cpu_info()).model).txt"
+    save &&  writedlm(open(f, "w"), data)
 end
 
 # ----------------------------------------------------------------------------
 
 if length(ARGS) in (1, 2)
     
-    save = false
+    save = true
     problem = parse(first(ARGS))
     imax = length(ARGS) == 1 ? 14 : parse(last(ARGS))
 
     if problem == 0
         # LAPACK::GeneralMatrices::Eigenvalue dgeev
         println("eig(full(A))")
-        scaling_eig(imax, :full, save)
+        scaling_eig(imax, :full, :hermitian, save)
 
     elseif problem == 1
         # LAPACK::SymmetricMatrices::Eigenvalue dsyevd -> same as python
         println("eig(Symmetric(A))")
-        scaling_eig(imax, :Symmetric, save)
+        scaling_eig(imax, :Symmetric, :hermitian, save)
 
     elseif problem == 2
         # LAPACK routine for symmetric tridiagonal systems dstegt
         println("eig(SymTridiagonal(A))")
-        scaling_eig(imax, :SymTridiagonal, save)
+        scaling_eig(imax, :SymTridiagonal, :hermitian, save)
 
     elseif problem == 3
         # LAPACK::GeneralMatrices::Eigenvalue dggev
@@ -104,12 +105,12 @@ if length(ARGS) in (1, 2)
     elseif problem == 6
         # LAPACK::GeneralMatrices::Eigenvalue dgeev
         println("eig(inv(lumped(M))*A)")
-        scaling_eig(imax, :SymTridiagonal, :hermitian_lumped, save)
+        scaling_eig(imax, :SymTridiagonal, :lumped, save)
 
     elseif problem == 7
         # LAPACK::SymmetricMatrices::Eigenvalue dsyevd -> same as python
         println("eig(A symmult lumped(M, -0.5)")
-        scaling_eig(imax, :SymTridiagonal, :hermitian_lumped_sym, save)
+        scaling_eig(imax, :SymTridiagonal, :hermitian_lumped, save)
 
     end
 end

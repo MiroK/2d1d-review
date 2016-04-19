@@ -1,8 +1,9 @@
 # Scaling of eigvalsh
 from dolfin import *
 from scipy.sparse import diags
-from scipy.linalg import toeplitz, eigh
+from scipy.linalg import toeplitz, eigh, eig
 import numpy as np
+import subprocess
 import time
 
 
@@ -48,33 +49,65 @@ def test_system():
         assert np.linalg.norm(M.dot(x)-M0.array().dot(x))/(n+1) < 1E-10
 
 
+def lump(mat, power=1.):
+    d = np.sum(mat, 1)
+    d = d**power
+    return np.diag(d)
+
+
+def cpu_type():
+    all_info = subprocess.check_output('cat /proc/cpuinfo', shell=True).strip()
+    cpus = [line.split(':')[-1].strip()
+            for line in all_info.split("\n") if 'model name' in line]
+    return cpus[0]
+
+
 def scaling_eigvalsh(problem='hermitian', imax=15):
     dt0, rate = -1, np.nan
     data = []
     for i in range(1, imax):
         n = 2**i
         A, M = system(n)
+        A, M = A.toarray(), M.toarray()
         
         if problem == 'hermitian':
             # Ends up calling LAPACK::ssyevd
             t0 = time.time()
-            eigw, eigv = eigh(A.toarray())
+            eigw, eigv = eigh(A)
             dt = time.time() - t0
+        
+        elif problem == 'lumped':
+            # Lump the mass matrix and take its inverse to the other side
+            # inv(lumped(M))*A is a tridiagonal matrix
+            t0 = time.time()
+            Minv = lump(M, -1.)
+            A = Minv.dot(A)
+            eigw, eigv = eig(A)
+            dt = time.time() - t0
+
+        elif problem == 'hermitian_lumped':
+            # lumped(M)^{-1/2}*A*lumped(M)^{-1/2} is a symmetric tridiagonal
+            # matrix
+            t0 = time.time()
+            M = lump(M, -0.5)
+            A = M.dot(A.dot(M))
+            eigw, eigv = eigh(A)
+            dt = time.time() - t0
+
         elif problem == 'gen_hermitian':
             # Ends up calling LAPACK::ssygvd
             t0 = time.time()
-            eigw, eigv = eigh(A.toarray(), M.toarray())
+            eigw, eigv = eigh(A, M)
             dt = time.time() - t0
-        elif problem == 'gen_hermitian_3':
-            # Is there something to be gained by computing Minv ourselves?
-            # No...
-            # Ends up calling LAPACK::ssygvd
-            M = M.toarray()
-            Minv = np.linalg.inv(M)
 
+        elif problem == 'gen_hermitian_lumped':
+            # Lump the mass matrix and keep it on the right hand size - solve a
+            # generalized eigenvalue problem
             t0 = time.time()
-            eigw, eigv = eigh(A.toarray(), Minv, type=3)
+            M = lump(M)
+            eigw, eigv = eigh(A, M)
             dt = time.time() - t0
+
         else:
             raise ValueError
 
@@ -87,7 +120,7 @@ def scaling_eigvalsh(problem='hermitian', imax=15):
 
         dt0 = dt
         data.append([A.shape[0], dt, rate, lmin, lmax])
-    np.savetxt('./data/py_eigvalsh_%s.txt' % problem,
+    np.savetxt('./data/py_%s_%s.txt' % (problem, cpu_type()),
                np.array(data),
                header='Ashape, CPU time, rate, lmin, lmax')
 
@@ -117,16 +150,26 @@ if __name__ == '__main__':
         print min(eigw), max(eigw)
 
     elif i == 0:
-        print 'Scaling of eigvalsh(A)'
+        print 'Scaling of eigh(A)'
         imax = 15 if len(sys.argv) == 2 else int(sys.argv[2])
         scaling_eigvalsh(problem='hermitian', imax=imax)
 
     elif i == 1:
-        print 'Scaling of eigvalsh(A, M)'
+        print 'Scaling of eigh(A, M)'
         imax = 15 if len(sys.argv) == 2 else int(sys.argv[2])
         scaling_eigvalsh(problem='gen_hermitian', imax=imax)
 
     elif i == 2:
-        print 'Scaling of eigvalsh(A, M) with Minv precomputed'
+        print 'Scaling of eigh(A, lumped(M))'
         imax = 15 if len(sys.argv) == 2 else int(sys.argv[2])
-        scaling_eigvalsh(problem='gen_hermitian_3', imax=imax)
+        scaling_eigvalsh(problem='gen_hermitian_lumped', imax=imax)
+
+    elif i == 3:
+        print 'Scaling of eig(inv(lumped(M))*A)'
+        imax = 15 if len(sys.argv) == 2 else int(sys.argv[2])
+        scaling_eigvalsh(problem='lumped', imax=imax)
+
+    elif i == 4:
+        print 'Scaling of eigh(Mi*A*Mi)'
+        imax = 15 if len(sys.argv) == 2 else int(sys.argv[2])
+        scaling_eigvalsh(problem='hermitian_lumped', imax=imax)
