@@ -1,62 +1,64 @@
-import numpy, time
-import scipy.linalg
+import numpy as np
 
-A = scipy.linalg.toeplitz(numpy.r_[-2, 1, numpy.zeros(1000)]/1000.)
-
-print 'SciPy eigh'
-t0 = time.time()
-e1 = scipy.linalg.eigvalsh(A).real
-print time.time() - t0
-
-##########################################
-
-
-LAPACK_LIB = '/home/miro3/.hashdist/bld/openblas/c7qemuijpr3x/lib/libopenblas.so'
-#LAPACK_LIB = '/home/miro3/Documents/Programming/julia/usr/lib/libopenblas64_.so'
+LAPACK_LIB = '/home/miro3/Documents/Programming/julia/usr/lib/libopenblas64_.so'
 
  
-def eigh_ctypes(A):
+def s3d_eig(d, u):
+    '''Eigen factorization of symmetric tridiagonal matrix.'''
     import ctypes
-    from ctypes import c_int, c_char, c_void_p, c_voidp
+    from ctypes import c_int, c_char, c_double
+
+    assert len(d) == len(u)+1
     # The routine overwrites the argument, so lets make a copy
-    A2 = numpy.array(A, copy=True, order='C', dtype=float)
-    N, M = A2.shape
-    assert N == M
+    D = np.array(d, copy=True, order='F', dtype=float)
+    E = np.array(u, copy=True, order='F', dtype=float)
+    N = len(d)
     
     # Some helpers
-    LAPACK_ROW_MAJOR = 101
-    array1d_t = numpy.ctypeslib.ndpointer(dtype=numpy.float64, ndim=1)
-    array2d_t = numpy.ctypeslib.ndpointer(dtype=numpy.float64, ndim=2)
+    matrix_layout = 102
+    double_p = np.ctypeslib.ndpointer(dtype=np.float64, ndim=1)
+    double_pp = np.ctypeslib.ndpointer(dtype=np.float64, ndim=2)
+    int_p = np.ctypeslib.ndpointer(dtype=np.int, ndim=1)
     
     # Define the function
     lapack = ctypes.CDLL(LAPACK_LIB)
-    dgeev = lapack.LAPACKE_dgeev
-    # JOBVL, JOBVR, N, A, LDA,
-    # WR, WI, VL, LDVL, VR, LDVR
-    # WORK, LWORK, INFO
-    dgeev.restype = c_int
-    dgeev.argtypes = [c_int, c_char, c_char,
-                      c_int, array2d_t, c_int,
-                      array1d_t, array1d_t,
-                      array1d_t, c_int, array1d_t, c_int]
+    foo = lapack.LAPACKE_dstegr64_
+
+    # int matrix_layout, char jobz,     char range,     lapack_int n, 
+    # double *d,         double *e,     double vl,      double vu, 
+    # lapack_int il,     lapack_int iu, double abstol,  lapack_int *m, 
+    # double *w,         double *z,     lapack_int ldz, lapack_int *isuppz
+
+    foo.restype = c_int
+    foo.argtypes = [c_int,     c_char,    c_char,   c_int,
+                    double_p,  double_p,  c_double, c_double,
+                    c_int,     c_int,     c_double, int_p,
+                    double_p,  double_p, c_int,    int_p]
     
-    LDA = N
-    WR = numpy.zeros(N, float)
-    WI = numpy.zeros(N, float)
-    LDVL = LDVR = N
-    VL = numpy.zeros(LDVL, float)
-    VR = numpy.zeros(LDVR, float)
-    info = dgeev(LAPACK_ROW_MAJOR, 'N', 'N',
-                 N, A2, LDA,
-                 WR, WI,
-                 VL, LDVL, VR, LDVR)
-    assert info == 0, "Got non-zero return value %d from LAPACK" % info
-    return WR
+    # matrix_layout, jobz, range, N, D, E, vl, vu, il, iu, abstol, m
+    # 
+    jobz = 'V'
+    range = 'A'
+    vl, vu = 0., 0.
+    il, iu = 0, 0
+    abstol = 0.
+    m = np.zeros(N, dtype=np.int)
+    w = np.zeros(N, dtype=np.float64)
+    z = np.zeros(N, dtype=np.float64)
+    ldz = N
+    isuppz = np.zeros(2*N, dtype=np.int)
 
-print 'CTypes eigh'
-t0 = time.time()
-e2 = eigh_ctypes(A)
-print time.time() - t0
+    info = foo(matrix_layout, jobz, range, N,
+               D,             E,    vl,    vu,
+               il,            iu,   abstol, m,
+               w,             z,    ldz,    isuppz)
+    
+    # assert info == 0, "Got non-zero return value %d from LAPACK" % info
+    # return WR
 
-import numpy as np
-print np.linalg.norm(e1-e2, np.inf)
+# ----------------------------------------------------------------------------
+
+d = np.random.rand(100)
+e = np.random.rand(99)
+
+s3d_eig(d, e)
