@@ -8,19 +8,19 @@ import time
 
 
 def system0(n):
-    from dolfin import *
-    mesh = UnitIntervalMesh(n)
-    V = FunctionSpace(mesh, 'CG', 1)
-    u = TrialFunction(V)
-    v = TestFunction(V)
-    bc = DirichletBC(V, Constant(0), 'on_boundary')
+    import dolfin as df
+    mesh = df.UnitIntervalMesh(n)
+    V = df.FunctionSpace(mesh, 'CG', 1)
+    u = df.TrialFunction(V)
+    v = df.TestFunction(V)
+    bc = df.DirichletBC(V, df.Constant(0), 'on_boundary')
 
-    a = inner(grad(u), grad(v))*dx
-    m = inner(u, v)*dx
-    L = inner(Constant(0), v)*dx
+    a = df.inner(df.grad(u), df.grad(v))*df.dx
+    m = df.inner(u, v)*df.dx
+    L = df.inner(df.Constant(0), v)*df.dx
 
-    A, _ = assemble_system(a, L, bc)
-    M, _ = assemble_system(m, L, bc)
+    A, _ = df.assemble_system(a, L, bc)
+    M, _ = df.ssemble_system(m, L, bc)
 
     return A, M
 
@@ -63,6 +63,10 @@ def cpu_type():
     return cpus[0]
 
 
+def mem_total():
+    return psutil.virtual_memory().total/10.**9
+
+
 def scaling_eigvalsh(problem='hermitian', imax=15):
     dt0, rate = -1, np.nan
     data = []
@@ -88,11 +92,18 @@ def scaling_eigvalsh(problem='hermitian', imax=15):
 
         elif problem == 'hermitian_lumped':
             # lumped(M)^{-1/2}*A*lumped(M)^{-1/2} is a symmetric tridiagonal
-            # matrix
+            # matrix. We use specialized routine to compute its eigen
+            # factorization
+            from lapack_stegr import s3d_eig
+
+            # We know this can be done efficiently as in julia and so we don't
+            # measure it
+            M = lump(M, -0.5)                            #
+            A = M.dot(A.dot(M))                          #
+            d, u = np.diagonal(A, 0), np.diagonal(A, 1)  # 
+
             t0 = time.time()
-            M = lump(M, -0.5)
-            A = M.dot(A.dot(M))
-            eigw, eigv = eigh(A)
+            eigw, eigv = s3d_eig(d, u)
             dt = time.time() - t0
 
         elif problem == 'gen_hermitian':
@@ -115,14 +126,13 @@ def scaling_eigvalsh(problem='hermitian', imax=15):
         lmin, lmax = np.min(eigw), np.max(eigw)
 
         if dt0 > 0:
-            rate = ln(dt/dt0)/ln(2)
+            rate = np.log(dt/dt0)/np.log(2)
             fmt = 'size %d took %g s rate = %.2f, lmin = %g, lmax = %g'
             print fmt % (A.shape[0], dt, rate, lmin, lmax)
 
         dt0 = dt
         data.append([A.shape[0], dt, rate, lmin, lmax])
-        mem = '%.2f' % (psutil.virtual_memory().total/10.**9)
-    np.savetxt('./data/py_%s_%s_%s.txt' % (problem, cpu_type(), mem),
+    np.savetxt('./data/py_%s_%s_%.2f.txt' % (problem, cpu_type(), mem_total()),
                np.array(data),
                header='Ashape, CPU time, rate, lmin, lmax')
 
@@ -170,8 +180,11 @@ if __name__ == '__main__':
         print 'Scaling of eig(inv(lumped(M))*A)'
         imax = 15 if len(sys.argv) == 2 else int(sys.argv[2])
         scaling_eigvalsh(problem='lumped', imax=imax)
-
+    ###############################################################################
+    # The one that matters: GEVP is transformed to EVP with SymTridiagonal martix #
+    ###############################################################################
     elif i == 4:
         print 'Scaling of eigh(Mi*A*Mi)'
         imax = 15 if len(sys.argv) == 2 else int(sys.argv[2])
         scaling_eigvalsh(problem='hermitian_lumped', imax=imax)
+    ###############################################################################
