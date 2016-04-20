@@ -10,10 +10,10 @@ from dolfin import Timer
 import numpy as np
 
 
-def get_1d_matrices(mesh, N):
+def get_1d_matrices(mesh_, N, root=''):
     '''Given mesh construct 1d matrices for GEVP.'''
     # Zig zag mesh
-    if mesh == 'nonuniform':
+    if mesh_ == 'nonuniform':
         mesh = 'Pb_zig_zag_bif'
         mesh2d = './meshes/%s_%d.xml' % (mesh, N)
         mesh1d = './meshes/%s_%d_facet_region.xml' % (mesh, N)
@@ -43,7 +43,25 @@ def get_1d_matrices(mesh, N):
     A, _ = assemble_system(a, L, bc)
     M, _ = assemble_system(m, L, bc)
 
-    return A.array(), M.array()
+    A, M = A.array(), M.array()
+
+    if root:
+        dA = np.diagonal(A, 0)
+        uA = np.r_[np.diagonal(A, 1), 0]
+        A = np.c_[dA, uA]
+
+        dM = np.diagonal(M, 0)
+        uM = np.r_[np.diagonal(M, 1), 0]
+        M = np.c_[dM, uM]
+
+        header = 'main and upper diagonals of A, M'
+        f = '_'.join([mesh_, str(N)])
+        import os
+        f = os.path.join(root, f)
+        np.savetxt(f, np.c_[A, M], header=header)
+        return 0
+    else:
+        return A, M
 
 
 def python_timings(mesh, Nrange, lumped=False):
@@ -88,8 +106,10 @@ def python_timings(mesh, Nrange, lumped=False):
 # ----------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    print python_timings('uniform', range(2, 11))
 
+    print get_1d_matrices(mesh_='uniform', N=1, root='.')
+    print get_1d_matrices(mesh_='uniform', N=1)
+    # print python_timings('uniform', range(2, 11))
     # Add lumping how
     # Add saving
 
