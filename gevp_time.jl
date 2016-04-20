@@ -4,23 +4,38 @@ using PyCall
 # Put current dir on path
 unshift!(PyVector(pyimport("sys")["path"]), "")
 
-# Let there be fenics
-@pyimport gevp_time as fenics
+global matrices 
+try
+    @assert 1 > 5
+    # Let there be fenics
+    @pyimport gevp_time as fenics
+    matrices = fenics.get_1d_matrices
+catch
+    function matrices(mesh, N, root=".")
+        path = string(symbol(mesh, "_", string(N)))
+        path = joinpath(root, path)
+        mats = readdlm(path)
+        A = SymTridiagonal(mats[:, 1], mats[1:end-1, 2])
+        M = SymTridiagonal(mats[:, 3], mats[1:end-1, 4])
+        A, M
+    end
+end
 
 lumped = false
-mesh, Nrange = "uniform", 2:10
+mesh, Nrange = "uniform", 1:1
 # mesh, Nrange = "nonuniform", 0:6
 
 times = []
 sizes = []
 
 for N in Nrange
-    mats = fenics.get_1d_matrices(mesh, N)
+    mats = matrices(mesh, N)
     # Individual timings
     ts = []
 
     # Convert to symmetric
-    A, M = map(Symmetric, mats)
+    # FIXME when we know what eigenproblem to solve and how
+    A, M = map(Symmetric, map(full, mats))
     # Solving the eigenvalue problem
     # FIXME tridiagonality is ignored
     if lumped
@@ -39,15 +54,11 @@ for N in Nrange
         # A = Mlinv*A
         # eigw, eigv = eig(A)
         # push!(ts, toq())
-    if lumped == "no"
+    else
         # Convert to symmetric
-        A, M = map(Symmetric, mats)
-
         tic()
         eigw, eigv = eig(A, M)
         push!(ts, toq())
-
-    elseif lumped == ""
     end
 
     @assert all(eigw .> 0)
