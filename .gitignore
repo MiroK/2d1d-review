@@ -9,3 +9,4 @@
 *.log
 *.bbl
 *.blg
+.ipynb_checkpoints/
