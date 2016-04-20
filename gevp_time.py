@@ -9,13 +9,16 @@ from scipy.linalg import eigh
 from dolfin import Timer
 import numpy as np
 
+from lapack_stegr import s3d_eig
+from eigw import lump
+
 
 def get_1d_matrices(mesh_, N, root=''):
     '''Given mesh construct 1d matrices for GEVP.'''
     if not isinstance(N, (int, float)):
         assert root
         return all([get_1d_matrices(mesh_, n, root) == 0 for n in N])
-    
+
     # Zig zag mesh
     if mesh_ == 'nonuniform':
         mesh_dir = '../plate-beam/py/fem_new/meshes'
@@ -74,62 +77,54 @@ def get_1d_matrices(mesh_, N, root=''):
 
 def python_timings(mesh, Nrange):
     '''Run across meshes solving lumped EVP and recording their sizes and exec time.'''
-    times = []
-    sizes = []
-
-    from lapack_stegr import s3d_eig
-    from eigw import lump, cpu_type, mem_total
-
+    # We know from julia that this idea(lumping) works. 
+    # So we are only after timing
+    data = []
     for A, M in (get_1d_matrices(mesh, N) for N in Nrange):
-        sizes.append(A.shape[0])
+        row = [A.shape[0]]
 
-        ts = []
-
-        M = lump(M, -0.5)                            #
+        M = lump(M, -0.5)                             #
         A = M.dot(A.dot(M))                           #
         d, u = np.diagonal(A, 0), np.diagonal(A, 1)   # 
 
-        print d, u
-
         t = Timer('EVP')
         eigw, eigv = s3d_eig(d, u)
-        ts.append(t.stop())
+        row.append(t.stop())
 
         # Assembling the preconditioner
         t = Timer('ASSEMBLE')
         H = eigv.dot(np.diag(eigw**-0.5).dot(eigv.T))
-        ts.append(t.stop())
+        row.append(t.stop())
 
         # Action of preconditioner(matrix)
         x = np.random.rand(H.shape[1])
         t = Timer('ACTION')
         y = H*x
-        ts.append(t.stop())
+        row.append(t.stop())
 
-        times.append(ts)
+        print row
+        data.append(row)
 
-        print sizes[-1], times[-1]
-
-    record = np.c_[sizes, times]
-    return record
+    return data
 
 # ----------------------------------------------------------------------------
 
 if __name__ == '__main__':
+    # Generate uniform matrices for julia
+    # mesh, Ns = 'uniform', [2**i for i in range(2, 12)] + [2**i for i in (11.5, 11.7)]
+    # print get_1d_matrices(mesh, Ns, root='./jl_matrices')
 
-    # print get_1d_matrices(mesh_='uniform', N=1, root='.')
-    # print get_1d_matrices(mesh_='uniform', N=1)
-   
-    mesh, Ns = 'uniform', [2**i for i in range(2, 12)] + [2**i for i in (11.5, 11.7)]
-    print get_1d_matrices(mesh, Ns, root='./jl_matrices')
-
+    # Generate nonuniform matrices for julia
     # mesh, Ns = 'nonuniform', range(8)
     # print get_1d_matrices(mesh, Ns, root='./jl_matrices')
 
-    # Add lumping how
-    # Add saving
+    data = python_timings('uniform',
+                          [2**i for i in range(2, 12)] + [2**i for i in (11.5, 11.7)])
+    np.savetxt('./data/py_uniform', data,
+               header='size, EVP, ASSEMBLE, ACTION. Julia has also GEVP and c, C')
 
 
-
-
+    data = python_timings('nonuniform', range(8))
+    np.savetxt('./data/py_nonuniform', data,
+               header='size, EVP, ASSEMBLE, ACTION. Julia has also GEVP and c, C')
 

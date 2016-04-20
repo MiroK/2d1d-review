@@ -6,6 +6,7 @@ import subprocess
 import psutil
 import time
 
+from lapack_stegr import s3d_eig
 
 def system0(n):
     import dolfin as df
@@ -20,7 +21,7 @@ def system0(n):
     L = df.inner(df.Constant(0), v)*df.dx
 
     A, _ = df.assemble_system(a, L, bc)
-    M, _ = df.ssemble_system(m, L, bc)
+    M, _ = df.assemble_system(m, L, bc)
 
     return A, M
 
@@ -94,7 +95,6 @@ def scaling_eigvalsh(problem='hermitian', imax=15):
             # lumped(M)^{-1/2}*A*lumped(M)^{-1/2} is a symmetric tridiagonal
             # matrix. We use specialized routine to compute its eigen
             # factorization
-            from lapack_stegr import s3d_eig
 
             # We know this can be done efficiently as in julia and so we don't
             # measure it
