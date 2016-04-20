@@ -104,14 +104,34 @@ done(it::rows, state) = done(it.indices, state)
 length(it::rows) = length(it.indices)
 
 # This is motivation for the defs below
-# FIXME is there a a clever(fast) way of computing eigs here? Note that this
-# comes from Ax = lambda diag(B)*x (1) where A, B are Sym3 so equally good
-# answer for us is to solve (1) w/out ruining the symmetry. Finally the best
-# answer is to solve (1) with full B. 
+# Ax = lambda Bx         GEVP, symmetric, tridiagonal
+# Ax = lambda lump(B)x   GEVP, symmetric, lhs is tridiagonal, simple rhs inverse
+# Mh * A * Mh = lambda x EVP, symmetric and tridiagonal -> fast
+# NOTE for EVP with SymTriadonal julia goes to DSTEVR(=DSTEMR=DSTEGR) which are
+# the O(n^2.small) algorithms. stev! might be an option so we use it here
+# 
+# goto paper: Performance and accuracy of lapack's symmetric tridiagonal
+# eigensolvers by Demmel J. W. et al.
 
+import Base.LinAlg.BlasReal, Base.LinAlg.Eigen
+copy_oftype{T,N}(A::AbstractArray{T,N}, ::Type{T}) = copy(A)
+# Divide and conque
+function dc_eig{T<:BlasReal}(A::SymTridiagonal{T})
+    S = promote_type(Float32, typeof(zero(T)/norm(one(T))))
+    D = copy_oftype(A.dv, S)
+    E = copy_oftype(A.ev, S)
+    eigen = Eigen(LAPACK.stev!('V', D, E)...)
+    eigen.values, eigen.vectors
+end
+
+eigfact!{T<:BlasReal}(A::SymTridiagonal{T}) = Eigen(LAPACK.stegr!('V', A.dv, A.ev)...)
+function eigfact{T}(A::SymTridiagonal{T})
+    S = promote_type(Float32, typeof(zero(T)/norm(one(T))))
+    eigfact!(copy_oftype(A, S))
+end
+
+# Multiplying to make lumped transformation easy
 import Base.*
-
-
 # Specialize Tridiagonal*Diagonal -> Tridiagonal
 function *{T<:Number, S<:Number}(A::Tridiagonal{T}, B::Diagonal{S})
     dl, d, du = A.dl, A.d, A.du
@@ -169,9 +189,6 @@ function ⋆{T<:Number, S<:Number}(A::SymTridiagonal{T}, B::Diagonal{S})
     SymTridiagonal(diag, upper)
 end
 
-# Mat*SymTridiagonal*Mat.T is SymTridiagonal
-# TODO + test
-
 # Probability norm. Generate a bunch of random vectors and see if about the l^2
 # norm of mat*vec
 function p_norm(mat::Matrix, nvecs=0)
@@ -197,7 +214,6 @@ function p_norm(mat::Matrix, nvecs=0)
     end
 end
 
-
 # Operator norm |A| = sup (x*A*x)/(x*M*x)
 op_norm(mat, M) = maximum(abs(first(eigs(mat, M, which=:LM, ritzvec=false))))
 # op_norm(mat, M) = maximum(abs(first(eig(mat, M))))
@@ -210,6 +226,8 @@ iseye(mat, tol=1E-10) = size(mat, 1) == size(mat, 2) && norm(mat-eye(size(mat, 1
 
 # Compare with zeros
 iszeros(mat, tol=1E-10) = norm(mat) < tol
+
+# When eig(A) is envoked with A::SymTridiagonal LAPACK.STEVD
 
 ########
 # TESTS
@@ -285,6 +303,20 @@ function test()
         @test typeof(r) == Array{Float64, 2}
     end
 
+    # Eig stuff
+    D = rand(200)
+    E = rand(199)
+    A = SymTridiagonal(D, E)
+    w, v = dc_eig(A)
+
+    @test_approx_eq_eps maximum([norm(A*eigv-eigw*eigv) for (eigw, eigv) in zip(w, cols(v))]) 0. 1E-13
+    
+    M = zeros(200, 200)
+    for i in 1:200, j in 1:200
+        M[i, j] = sum(v[:, i].*v[:, j])
+    end
+    @test iseye(M, 1E-13)
+    
     true
 end
 
