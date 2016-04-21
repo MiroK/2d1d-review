@@ -9,22 +9,33 @@ from scipy.linalg import eigh
 from dolfin import Timer
 import numpy as np
 
+from lapack_stegr import s3d_eig
+from eigw import lump
+
 
 def get_1d_matrices(mesh_, N, root=''):
     '''Given mesh construct 1d matrices for GEVP.'''
+    if not isinstance(N, (int, float)):
+        assert root
+        return all([get_1d_matrices(mesh_, n, root) == 0 for n in N])
+
     # Zig zag mesh
     if mesh_ == 'nonuniform':
+        mesh_dir = '../plate-beam/py/fem_new/meshes'
         mesh = 'Pb_zig_zag_bif'
-        mesh2d = './meshes/%s_%d.xml' % (mesh, N)
-        mesh1d = './meshes/%s_%d_facet_region.xml' % (mesh, N)
+        mesh2d = '%s/%s_%d.xml.gz' % (mesh_dir, mesh, N)
+        mesh1d = '%s/%s_%d_facet_region.xml.gz' % (mesh_dir, mesh, N)
         mesh2d = Mesh(mesh2d)
         mesh1d = MeshFunction('size_t', mesh2d, mesh1d)
     # Structured meshes
     else:
-        mesh2d = UnitSquareMesh(2**N, 2**N)
+        N = int(N)
+        mesh2d = UnitSquareMesh(N, N)
         mesh1d = EdgeFunction('size_t', mesh2d, 0)
         # Beam at y = 0.5
         CompiledSubDomain('near(x[1], 0.5, 1E-10)').mark(mesh1d, 1)
+
+    print FunctionSpace(mesh2d, 'CG', 1).dim()
 
     # Extract 1d
     import sys; sys.setrecursionlimit(20000);
@@ -64,57 +75,56 @@ def get_1d_matrices(mesh_, N, root=''):
         return A, M
 
 
-def python_timings(mesh, Nrange, lumped=False):
-    '''Run acorss meshes solving GEVP and recording their sizes and exec time.'''
-    times = []
-    sizes = []
-
+def python_timings(mesh, Nrange):
+    '''Run across meshes solving lumped EVP and recording their sizes and exec time.'''
+    # We know from julia that this idea(lumping) works. 
+    # So we are only after timing
+    data = []
     for A, M in (get_1d_matrices(mesh, N) for N in Nrange):
-        sizes.append(A.shape[0])
+        row = [A.shape[0]]
 
-        ts = []
-        # Solving the eigenvalue problem
-        if lumped:
-            t = Timer('GEVP')
-            M = np.sum(M, 1)
-            M = np.diag(M)
-            eigw, eigv = eigh(A, M)
-            ts.append(t.stop())
-        else:
-            t = Timer('GEVP')
-            eigw, eigv = eigh(A, M)
-            ts.append(t.stop())
+        M = lump(M, -0.5)                             #
+        A = M.dot(A.dot(M))                           #
+        d, u = np.diagonal(A, 0), np.diagonal(A, 1)   # 
+
+        t = Timer('EVP')
+        eigw, eigv = s3d_eig(d, u)
+        row.append(t.stop())
 
         # Assembling the preconditioner
         t = Timer('ASSEMBLE')
         H = eigv.dot(np.diag(eigw**-0.5).dot(eigv.T))
-        ts.append(t.stop())
+        row.append(t.stop())
 
         # Action of preconditioner(matrix)
         x = np.random.rand(H.shape[1])
         t = Timer('ACTION')
         y = H*x
-        ts.append(t.stop())
+        row.append(t.stop())
 
-        times.append(ts)
+        print row
+        data.append(row)
 
-        print sizes[-1], times[-1]
-
-    record = np.c_[sizes, times]
-    return record
+    return data
 
 # ----------------------------------------------------------------------------
 
 if __name__ == '__main__':
+    # Generate uniform matrices for julia
+    # mesh, Ns = 'uniform', [2**i for i in range(2, 12)] + [2**i for i in (11.5, 11.7)]
+    # print get_1d_matrices(mesh, Ns, root='./jl_matrices')
 
-    print get_1d_matrices(mesh_='uniform', N=1, root='.')
-    print get_1d_matrices(mesh_='uniform', N=1)
-    # print python_timings('uniform', range(2, 11))
-    # Add lumping how
-    # Add saving
-    #...
+    # Generate nonuniform matrices for julia
+    # mesh, Ns = 'nonuniform', range(8)
+    # print get_1d_matrices(mesh, Ns, root='./jl_matrices')
+
+    data = python_timings('uniform',
+                          [2**i for i in range(2, 12)] + [2**i for i in (11.5, 11.7)])
+    np.savetxt('./data/py_uniform_evp', data,
+               header='size, EVP, ASSEMBLE, ACTION. Julia has also GEVP and c, C')
 
 
-
-
+    data = python_timings('nonuniform', range(8))
+    np.savetxt('./data/py_nonuniform_evp', data,
+               header='size, EVP, ASSEMBLE, ACTION. Julia has also GEVP and c, C')
 

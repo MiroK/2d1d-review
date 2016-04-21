@@ -1,7 +1,9 @@
 import numpy as np
+import ctypes
+from ctypes import c_int, c_char, c_double
 
 # Select which blas to use. Note that the LIB path is hardcoded
-impl = 'jl'
+impl = 'mkl'
 
 # Julia's openblas
 if impl == 'jl':
@@ -13,11 +15,29 @@ elif impl == 'py':
 else:
     LAPACK_LIB ='/opt/uio/modules/packages/intel/14.0.2.144/mkl/lib/intel64/libmkl_rt.so'
 
+# Define the function
+lapack = ctypes.CDLL(LAPACK_LIB)
+
+matrix_layout = 101
+double_p = np.ctypeslib.ndpointer(dtype=np.float64, ndim=1)
+double_pp = np.ctypeslib.ndpointer(dtype=np.float64, ndim=2)
+int_p = np.ctypeslib.ndpointer(dtype=np.int64, ndim=1)
+
+# int matrix_layout, char jobz,     char range,     lapack_int n, 
+# double *d,         double *e,     double vl,      double vu, 
+# lapack_int il,     lapack_int iu, double abstol,  lapack_int *m, 
+# double *w,         double *z,     lapack_int ldz, lapack_int *isuppz
+# Julia has spacial names
+foo = lapack.LAPACKE_dstegr64_ if impl == 'jl' else lapack.LAPACKE_dstegr
+foo.restype = c_int
+foo.argtypes = [c_int,     c_char,    c_char,   c_int,
+                double_p,  double_p,  c_double, c_double,
+                c_int,     c_int,     c_double, int_p,
+                double_p,  double_pp, c_int,    int_p]
+
 
 def dstegr(jobz, d, u):
     '''Eigen factorization of symmetric tridiagonal matrix with LAPACK.DSTEGR.'''
-    import ctypes
-    from ctypes import c_int, c_char, c_double
     assert jobz in ('V', 'N')
     assert len(d) == len(u)+1
 
@@ -27,28 +47,6 @@ def dstegr(jobz, d, u):
     E = np.r_[np.array(u, copy=True, order='C', dtype=float), 0]
     N = len(d)
 
-    # Some helpers
-    matrix_layout = 101
-    double_p = np.ctypeslib.ndpointer(dtype=np.float64, ndim=1)
-    double_pp = np.ctypeslib.ndpointer(dtype=np.float64, ndim=2)
-    int_p = np.ctypeslib.ndpointer(dtype=np.int64, ndim=1)
-    
-    # Define the function
-    lapack = ctypes.CDLL(LAPACK_LIB)
-    # Julia has spacial names
-    foo = lapack.LAPACKE_dstegr64_ if impl == 'jl' else lapack.LAPACKE_dstegr
-
-    # int matrix_layout, char jobz,     char range,     lapack_int n, 
-    # double *d,         double *e,     double vl,      double vu, 
-    # lapack_int il,     lapack_int iu, double abstol,  lapack_int *m, 
-    # double *w,         double *z,     lapack_int ldz, lapack_int *isuppz
-
-    foo.restype = c_int
-    foo.argtypes = [c_int,     c_char,    c_char,   c_int,
-                    double_p,  double_p,  c_double, c_double,
-                    c_int,     c_int,     c_double, int_p,
-                    double_p,  double_pp, c_int,    int_p]
-    
     range = 'A'       # All eigenvalues
     vl, vu = 0., 0.
     il, iu = 0, 0
@@ -119,27 +117,24 @@ def test():
 # ----------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    from scipy.sparse import diags
-    from scipy.linalg import eigh
     import time
+    from eigw import system, system0
+    from numpy.linalg import norm
 
-    ns = [2**i for i in [10, 11, 12, 13]]
-    times = np.zeros((len(ns), 1+3))
-    times[:, 0] = ns
-    for row, n in enumerate(ns):
-        ntimes, ntimes0 = [], []
-        for i in [1, 2, 3]:
-            d = np.random.rand(n)+1
-            e = np.random.rand(n-1)
+    ns = [2**i for i in [10, 11, 12, 13, 14]]
+    for n in ns:
+        A, _ = system(n)
+        A = A.toarray()
+        d, e = np.diagonal(A, 0), np.diagonal(A, 1)
 
-            t = time.time()
-            w, v = s3d_eig(d, e)
-            t = time.time()-t
-            ntimes.append(t)
+        A0, _ = system0(n)
+        A0 = A0.array()
+        d0, e0 = np.diagonal(A0, 0), np.diagonal(A0, 1)
+        assert norm(d-d0) < 1E-13 and norm(e-e0) < 1E-13
+        
+        t = time.time()
+        w, v = s3d_eig(d, e)
+        t = time.time()-t
+        w, v = s3d_eig(d0, e0)
 
-        times[row, 1:] = [np.min(ntimes), np.average(ntimes), np.max(ntimes)]
-    
-    print impl
-    for row in times:
-        print '%d min=%.3f avg=%.3f max=%.3f' % tuple(row)
-    print
+        print n, t 

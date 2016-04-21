@@ -26,6 +26,9 @@ function scaling_eig(imax, representation, problem=:hermitian, save=false)
             eigw, eigv = eig(A)
             dt = toq()
 
+        ###############################################################################
+        # The one that matters: GEVP is transformed to EVP with SymTridiagonal martix #
+        ###############################################################################
         elseif problem == :hermitian_lumped
             tic()
             Minv = Utils.lumped(M, -0.5)
@@ -33,6 +36,7 @@ function scaling_eig(imax, representation, problem=:hermitian, save=false)
             @assert typeof(A) == SymTridiagonal{eltype(A)}
             eigw, eigv = eig(A)
             dt = toq()
+        ###############################################################################
 
         elseif problem == :gen_hermitian_lumped
             tic()
