@@ -120,11 +120,11 @@ if __name__ == '__main__':
 
     data = python_timings('uniform',
                           [2**i for i in range(2, 12)] + [2**i for i in (11.5, 11.7)])
-    np.savetxt('./data/py_uniform', data,
+    np.savetxt('./data/py_uniform_evp', data,
                header='size, EVP, ASSEMBLE, ACTION. Julia has also GEVP and c, C')
 
 
     data = python_timings('nonuniform', range(8))
-    np.savetxt('./data/py_nonuniform', data,
+    np.savetxt('./data/py_nonuniform_evp', data,
                header='size, EVP, ASSEMBLE, ACTION. Julia has also GEVP and c, C')
 
