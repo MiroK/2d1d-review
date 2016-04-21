@@ -4,8 +4,8 @@ import numpy as np
 
 # How much time AMG takes on the meshes where we do gevp timing
 
-mesh_, Ns = 'uniform', [2**i for i in range(2, 12)] + [2**i for i in (11.5, 11.7)] 
-#mesh_, Ns = 'nonuniform', range(8)
+# mesh_, Ns = 'uniform', [2**i for i in range(2, 12)] + [2**i for i in (11.5, 11.7)] 
+mesh_, Ns = 'nonuniform', range(8)
 
 
 data = []
