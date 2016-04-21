@@ -35,9 +35,18 @@ for f in sort!(filter(x->startswith(x, mesh), readdir(root)))
     y = H*x
     push!(row, toq())
 
-    # # For fum timing of unlumped solver
+    # For fum timing of unlumped solver
     A = SymTridiagonal(mats[:, 1], mats[1:end-1, 2])
     M = SymTridiagonal(mats[:, 3], mats[1:end-1, 4])
+
+    #
+    # Using partially the SymTridiagonal property 
+    # tic()
+    # eigw0, eigv0 = eig(A, M)
+    # push!(row, toq())
+    # 
+
+    # Using Symmetry
     A, M = Symmetric(full(A)), Symmetric(full(M))
     tic()
     eigw0, eigv0 = eig(A, M)

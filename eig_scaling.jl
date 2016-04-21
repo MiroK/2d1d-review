@@ -44,11 +44,19 @@ function scaling_eig(imax, representation, problem=:hermitian, save=false)
             eigw, eigv = eig(A, M)
             dt = toq()
 
+        # The exact problem that we need to solve
         elseif problem == :gen_hermitian
             tic()
             eigw, eigv = eig(A, M)
             dt = toq()
-
+        
+        # Solve the genarized eigenvalue problem taking at least partially into
+        # account SymTridiagonal properies of the matrix
+        # NOTE It has worse convergence properties then eig(A, M)
+        elseif problem == :gen_hermitian_stegr
+            tic()
+            eigw, eigv = eig(A, M)
+            dt = toq()
         else
             @assert false
         end
@@ -115,8 +123,14 @@ if length(ARGS) in (1, 2)
 
     elseif problem == 7
         # LAPACK::SymmetricMatrices::Eigenvalue dsyevd -> same as python
-        println("eig(A symmult lumped(M, -0.5)")
+        println("eig(A symmult lumped(M, -0.5))")
         scaling_eig(imax, :SymTridiagonal, :hermitian_lumped, save)
+
+    # Uses partially the symtridiagonal properties
+    elseif problem == 8
+        # LAPACK::SymmetricMatrices::Eigenvalue dsyevd -> same as python
+        println("eig(A::SymTridiagonal, M:SymTridiagonal)")
+        scaling_eig(imax, :SymTridiagonal, :gen_hermitian_stegr, save)
 
     end
 end
