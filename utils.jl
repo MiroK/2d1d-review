@@ -227,7 +227,15 @@ iseye(mat, tol=1E-10) = size(mat, 1) == size(mat, 2) && norm(mat-eye(size(mat, 1
 # Compare with zeros
 iszeros(mat, tol=1E-10) = norm(mat) < tol
 
-# When eig(A) is envoked with A::SymTridiagonal LAPACK.STEVD
+import Base.eig
+function eig{T<:Real}(A::SymTridiagonal{T}, B::SymTridiagonal{T})
+    β, W = eig(B)
+    W = W*Diagonal(1./sqrt(β))
+    A = Symmetric(W'*full(A)*W)
+    λ, C = eig(A)
+    U = W*C
+    λ, U
+end
 
 ########
 # TESTS
@@ -314,6 +322,18 @@ function test()
     M = zeros(200, 200)
     for i in 1:200, j in 1:200
         M[i, j] = sum(v[:, i].*v[:, j])
+    end
+    @test iseye(M, 1E-13)
+
+    # Alternative routine for computing Ax=lambda B*x 
+    A, B = matrices(10, :SymTridiagonal)
+    w, v = eig(A, B)
+
+    @test_approx_eq_eps maximum([norm(A*eigv-eigw*B*eigv) for (eigw, eigv) in zip(w, cols(v))]) 0. 1E-10
+    
+    M = zeros(A)
+    for i in 1:size(M, 1), j in 1:size(M, 2)
+        M[i, j] = sum(v[:, i].*B*v[:, j])
     end
     @test iseye(M, 1E-13)
     
