@@ -1,5 +1,6 @@
 from dolfin import *
 from block.algebraic.petsc import AMG
+from eigw import cpu_type, mem_total
 import numpy as np
 
 # How much time AMG takes on the meshes where we do gevp timing
@@ -45,5 +46,6 @@ data = np.array(data)
 print data
 
 
-np.savetxt('./data/py_%s_amg' % mesh_, data,
+np.savetxt('./data/py_%s@%s_%.2f_amg' % (mesh_, cpu_type(), mem_total()),
+           data,
            header='size(A) time to construct P=AMG(A) and its action')

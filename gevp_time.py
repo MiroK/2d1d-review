@@ -10,7 +10,7 @@ from dolfin import Timer
 import numpy as np
 
 from lapack_stegr import s3d_eig
-from eigw import lump
+from eigw import lump, cpu_type, mem_total
 
 
 def get_1d_matrices(mesh_, N, root=''):
@@ -75,17 +75,40 @@ def get_1d_matrices(mesh_, N, root=''):
         return A, M
 
 
-def python_timings(mesh, Nrange):
+def read_matrices(mesh, root):
+    import os
+    from scipy.sparse import diags
+
+    files = os.listdir(root)
+    files = filter(lambda f: f.startswith(mesh), files)
+    files = sorted(files, key=lambda v: int(v.split('_')[-1]))
+
+    for f in files:
+        data = np.loadtxt(os.path.join(root, f))
+        d, u = data[:, 0], data[:-1, 1]
+        A = diags([u, d, u], [-1, 0, 1]).toarray()
+        d, u = data[:, 2], data[:-1, 3]
+        M = diags([u, d, u], [-1, 0, 1]).toarray()
+        yield A, M
+
+
+def python_timings(mesh, Nrange, read_matrix=False):
     '''Run across meshes solving lumped EVP and recording their sizes and exec time.'''
     # We know from julia that this idea(lumping) works. 
     # So we are only after timing
     data = []
-    for A, M in (get_1d_matrices(mesh, N) for N in Nrange):
+
+    if read_matrix:
+        matrices = read_matrices(mesh, root='./jl_matrices')
+    else:
+        matrices = (get_1d_matrices(mesh, N) for N in Nrange)
+
+    for A, M in matrices:
         row = [A.shape[0]]
 
-        M = lump(M, -0.5)                             #
-        A = M.dot(A.dot(M))                           #
-        d, u = np.diagonal(A, 0), np.diagonal(A, 1)   # 
+        M0 = lump(M, -0.5)                             #
+        A0 = M0.dot(A.dot(M0))                           #
+        d, u = np.diagonal(A0, 0), np.diagonal(A0, 1)   # 
 
         t = Timer('EVP')
         eigw, eigv = s3d_eig(d, u)
@@ -100,6 +123,11 @@ def python_timings(mesh, Nrange):
         x = np.random.rand(H.shape[1])
         t = Timer('ACTION')
         y = H*x
+        row.append(t.stop())
+
+        # The original GEVP
+        t = Timer('GEVP')
+        eigw, eigv = eigh(A, M)
         row.append(t.stop())
 
         print row
@@ -117,14 +145,20 @@ if __name__ == '__main__':
     # Generate nonuniform matrices for julia
     # mesh, Ns = 'nonuniform', range(8)
     # print get_1d_matrices(mesh, Ns, root='./jl_matrices')
+    read_matrix = False
 
-    data = python_timings('uniform',
-                          [2**i for i in range(2, 12)] + [2**i for i in (11.5, 11.7)])
-    np.savetxt('./data/py_uniform_evp', data,
-               header='size, EVP, ASSEMBLE, ACTION. Julia has also GEVP and c, C')
+    if False:
+        data = python_timings('uniform',
+                              [2**i for i in range(2, 12)] + [2**i for i in (11.5, 11.7)],
+                              read_matrix)
 
+        np.savetxt('./data/py_uniform_%d_@%s_%.2f_evp' % (read_matrix, cpu_type(), mem_total()),
+                   data,
+                   header='size, EVP, ASSEMBLE, ACTION, GEVP. Julia has c, C')
 
-    data = python_timings('nonuniform', range(8))
-    np.savetxt('./data/py_nonuniform_evp', data,
-               header='size, EVP, ASSEMBLE, ACTION. Julia has also GEVP and c, C')
+    if True:
+        data = python_timings('nonuniform', range(8), read_matrix)
+        np.savetxt('./data/py_nonuniform_%d_@%s_%.2f_evp' % (read_matrix, cpu_type(), mem_total()),
+                   data,
+                   header='size, EVP, ASSEMBLE, ACTION, GEVP. Julia has c, C')
 

@@ -68,4 +68,7 @@ for (r, row) in enumerate(sort!(record, by=first))
     data[r, :] = row
 end
 
-writedlm(open(joinpath("./data", "jl_"*mesh*"_evp"), "w"), data)
+# Make this cpu, memory aware
+cpu = first(Sys.cpu_info()).model
+mem = round(Int(Sys.total_memory())/10^9, 2)       # At GB
+writedlm(open(joinpath("./data", "jl_"*mesh*"@$(cpu)_$(mem)""_evp"), "w"), data)
