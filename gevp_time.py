@@ -18,22 +18,32 @@ def get_1d_matrices(mesh_, N, root=''):
     if not isinstance(N, (int, float)):
         assert root
         return all([get_1d_matrices(mesh_, n, root) == 0 for n in N])
+    
+    mesh_dir = '../plate-beam/py/fem_new/meshes'
 
     # Zig zag mesh
     if mesh_ == 'nonuniform':
-        mesh_dir = '../plate-beam/py/fem_new/meshes'
         mesh = 'Pb_zig_zag_bif'
         mesh2d = '%s/%s_%d.xml.gz' % (mesh_dir, mesh, N)
-        mesh1d = '%s/%s_%d_facet_region.xml.gz' % (mesh_dir, mesh, N)
+        # mesh1d = '%s/%s_%d_facet_region.xml.gz' % (mesh_dir, mesh, N)
         mesh2d = Mesh(mesh2d)
-        mesh1d = MeshFunction('size_t', mesh2d, mesh1d)
+        # Constructing facet function can be too expensive so here's and
+        # alternative
+        # mesh1d = get_marked_facets(mesh1d)
     # Structured meshes
-    else:
+    elif mesh_ == 'uniform':
+        mesh = mesh_
         N = int(N)
         mesh2d = UnitSquareMesh(N, N)
-        mesh1d = EdgeFunction('size_t', mesh2d, 0)
+        # mesh1d = EdgeFunction('size_t', mesh2d, 0)
         # Beam at y = 0.5
-        CompiledSubDomain('near(x[1], 0.5, 1E-10)').mark(mesh1d, 1)
+        # CompiledSubDomain('near(x[1], 0.5, 1E-10)').mark(mesh1d, 1)
+
+        # Use the above here as well
+        # from dolfin import SubsetIterator
+        # mesh1d = [e.index() for e in SubsetIterator(mesh1d, 1)]
+    mesh1d = '%s/%s_%d_edgelist' % (mesh_dir, mesh, N)
+    mesh1d = map(int, np.loadtxt(mesh1d))
 
     print FunctionSpace(mesh2d, 'CG', 1).dim()
 
@@ -139,12 +149,13 @@ def python_timings(mesh, Nrange, read_matrix=False):
 
 if __name__ == '__main__':
     # Generate uniform matrices for julia
-    # mesh, Ns = 'uniform', [2**i for i in range(2, 12)] + [2**i for i in (11.5, 11.7)]
-    # print get_1d_matrices(mesh, Ns, root='./jl_matrices')
+    mesh, Ns = 'uniform', [2**i for i in range(2, 12)] + [2**i for i in (11.5, 11.7)]
+    print get_1d_matrices(mesh, Ns, root='./jl_matrices')
 
     # Generate nonuniform matrices for julia
-    # mesh, Ns = 'nonuniform', range(8)
-    # print get_1d_matrices(mesh, Ns, root='./jl_matrices')
+    mesh, Ns = 'nonuniform', range(8)
+    print get_1d_matrices(mesh, Ns, root='./jl_matrices')
+
     read_matrix = False
 
     if False:
@@ -156,7 +167,7 @@ if __name__ == '__main__':
                    data,
                    header='size, EVP, ASSEMBLE, ACTION, GEVP. Julia has c, C')
 
-    if True:
+    if False:
         data = python_timings('nonuniform', range(8), read_matrix)
         np.savetxt('./data/py_nonuniform_%d_@%s_%.2f_evp' % (read_matrix, cpu_type(), mem_total()),
                    data,

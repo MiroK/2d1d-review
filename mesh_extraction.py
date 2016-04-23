@@ -16,8 +16,16 @@ def analyse_connectivity(mesh, edge_f, subdomain):
     assert gdim == tdim and tdim > 1
    
     # And building 1d in gdim meshes
-    edim = edge_f.dim()
-    assert edim == 1
+    try:
+        edim = edge_f.dim()
+        assert edim == 1
+        edges = SubsetIterator(edge_f, subdomain)
+
+    except AttributeError:
+        assert isinstance(edge_f, list)
+        # Recreate edges from list
+        mesh.init(1)
+        edges = (Edge(mesh, index) for index in edge_f)
 
     # First compute connectivity edge <--> vertex for edge, vertex on edge_f
     mesh.init(1, 0)
@@ -29,7 +37,7 @@ def analyse_connectivity(mesh, edge_f, subdomain):
     # Edge function - extract marked
     # if isinstance(edge_f, MeshFunction):
     edge_vertex_c = dict((edge.index(), set(all_edge_vertex_c(edge.index())))
-                         for edge in SubsetIterator(edge_f, subdomain))
+                         for edge in edges)
         # Only marked are given in list
     # else:
     #     edge_vertex_c = dict((edge, set(all_edge_vertex_c(edge)))
