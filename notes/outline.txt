@@ -1,0 +1,23 @@
+Discussion of components
+
+# GEVP with LAPACK
+# EVP lumped with LAPACK
+# EVP ignoring LAPACK
+# Timings on both meshes solve, cstr, apply
+# What is their relationship
+
+# AMG on A1
+# Timings: cstr and apply
+
+Problems from the paper on larger meshes
+
+# Iteration counts Qcap and Vcap
+# Timings. Honest -> python
+
+# Eigenvalues for larger problems
+
+The effect of (G)EVP which is solved
+# Iteration counts
+# Eigenvalues
+
+Questions
