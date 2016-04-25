@@ -1,0 +1,200 @@
+\documentclass[10pt, a4paper]{article}
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{enumerate}
+\usepackage{caption, subcaption, floatrow}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{xfrac}
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usetikzlibrary{plotmarks, calc}
+\usepackage{standalone}
+\usepackage{url}
+
+%%%%%%% COLORS
+\usepackage{xcolor, colortbl}
+\newcolumntype{S}{>{\columncolor{lime!50}}c}         % serial small
+\newcolumntype{L}{>{\columncolor{cyan!50}}c}         % serial large
+\newcolumntype{P}{>{\columncolor{red!50}}c}          % parallel& 
+%%%%%%%
+
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\set}[1]{\{#1\}}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+\newcommand{\semi}[1]{\lvert#1\rvert}
+\newcommand{\norm}[1]{\lVert#1\rVert}
+\newcommand{\inner}[2]{\ensuremath{\left(#1, #2\right)}}
+\renewcommand{\brack}[1]{\langle#1\rangle}
+\newcommand{\average}[1]{\ensuremath{\langle#1\rangle} }
+\newcommand{\jump}[1]{\ensuremath{[\![#1]\!]} }
+\newcommand{\mat}[1]{\ensuremath{\mathsf{#1}}}
+\newcommand{\dual}[1]{\ensuremath{{#1}^{\prime}}}
+\renewcommand{\vec}[1]{\mat{#1}}
+\newcommand{\supp}{\operatorname{supp}} 
+
+\oddsidemargin=3pt
+\textwidth=500pt
+\topmargin=3pt
+
+\title{The efficiency of Q-cap and W-cap preconditioners}
+
+\begin{document}
+\maketitle
+
+\section*{Introduction}
+This note collects new results that address comments of the reviewers on our paper. The comments boil down
+to the following four points: (i) The computational results presented are four rather small problems.
+(ii) The results are missing cost evaluation. (iii) It would be nice to compare the proposed preconditioners
+with some existing alternatives. (iv) It would be nice if the eigenvalue problem of the $Q$-cap were solved
+analytically (as much as possible).
+
+\section*{Preliminaries}
+The results below are for the most part obtained on a desktop PC with 16 GB of RAM and four Intel\textsuperscript{\copyright} 
+Core\texttrademark i5-2500 cpus clocking at 3.3 GHz. The small eigenvalue problems required for constructing the approximations
+of fractional Sobolev norms are solved with routines from OpenBlas\cite{openblas}. The large eigenvalue problems that are used
+to obtain condition numbers of the $Q$, $W$-cap precondtioned systems are solved with routines from SLEPc\cite{slepc} - in particular,
+a generalized Davidson method with Cholesky preconditioning is employed. Finally the implementation of algebraic multigrid (AMG) is
+taken from PETSc\cite{petsc}.
+
+In the experiments we shall consider two geometrical configurations. \textit{Uniform} mesh refers to a unit square (2d domain) coupled 
+to a horizontal line through $y=\tfrac{1}{2}$ (1d domain). The domain is discretized uniformly into $2N^2$ triangular cells and $N$ 
+interval cells. \textit{Non-uniform} mesh has as the two dimensional domain a bi-unit square coupled to a $Y$-shaped bifurcation which
+is the one dimensional domain. The discretization of \textit{non-uniform} mesh is unstructured. An important distinction between these
+two cases is that in the latter one the number of degrees of freedom on the 1d domain grows faster upon refinement. 
+
+Finally, we shall denote as $n$ the dimension of the space where the 2d unknown is sought while $m$ is the dimension of the spaces of
+the 1d uknown (and the Lagrange multiplier). Obviously $n+2m$ is the total size of the linear system to be solved.
+
+\section*{Results}
+Condition numbers of the $Q$-cap and $W$-cap preconditioned system are listed in respecively in table \ref{tab:con_Qcap}
+and \ref{tab:con_Wcap}. In all four cases they are nicely bounded. Note that in comparison to the
+results presented in the paper the size of the considered problems has grown about eight times. Also note that for $\epsilon \ll 1$ the 
+condition number is close to that of the Schur complement preconditioner.
+%Qcap cond
+%Unif
+\begin{table}[ht]
+  \caption{Condition numbers of the $Q$-cap preconditioned system for different values of parameter 
+$\epsilon$. \textit{Uniform} mesh top, \textit{non-uniform} mesh bottom.
+}
+\label{tab:con_Qcap}
+\footnotesize{
+\begin{tabular}{l|ccccccc}
+\hline
+($n$, $m$)\textbackslash $\epsilon$ & $10^{-3}$ & $10^{-2}$ & $10^{-1}$ & $10^{0}$ & $10^{1}$ & $10^{2}$ & $10^{3}$\\
+\hline
+(25, 5) & 2.633 & 2.760 & 3.686 & 5.716 & 6.427 & 6.514 & 6.523\\
+(81, 9) & 2.655 & 2.969 & 4.786 & 6.979 & 7.328 & 7.357 & 7.360\\
+(289, 17) & 2.698 & 3.323 & 5.966 & 7.597 & 7.697 & 7.715 & 7.717\\
+(1089, 33) & 2.778 & 3.905 & 7.031 & 7.882 & 7.818 & 7.816 & 7.816\\
+(4225, 65) & 2.932 & 4.769 & 7.830 & 8.016 & 7.855 & 7.843 & 7.843\\
+(16641, 129) & 3.217 & 5.857 & 8.343 & 8.081 & 7.868 & 7.854 & 7.852\\
+(66049, 257) & 3.710 & 6.964 & 8.637 & 8.113 & 7.872 & 7.856 & 7.855\\
+\hline
+\hline
+(1466, 55) & 2.773 & 3.811 & 6.401 & 7.181 & 7.205 & 7.207 & 7.208\\
+(5584, 107) & 2.926 & 4.597 & 7.018 & 7.314 & 7.282 & 7.280 & 7.279\\
+(21905, 212) & 3.181 & 5.453 & 7.381 & 7.365 & 7.308 & 7.304 & 7.303\\
+(87260, 422) & 3.630 & 6.374 & 7.689 & 7.493 & 7.426 & 7.421 & 7.421\\
+\hline
+\end{tabular}
+}
+\end{table}
+%
+%Vcap cond
+%Unif
+\begin{table}[hb]
+  \caption{Condition numbers of the $W$-cap preconditioned system for different values of parameter 
+$\epsilon$. \textit{Uniform} mesh top, \textit{non-uniform} mesh bottom.
+}
+\label{tab:con_Wcap_unif}
+\footnotesize{
+\begin{tabular}{l|ccccccc}
+\hline
+($n$, $m$)\textbackslash $\epsilon$ & $10^{-3}$ & $10^{-2}$ & $10^{-1}$ & $10^{0}$ & $10^{1}$ & $10^{2}$ & $10^{3}$\\
+\hline
+(25, 5) & 2.618 & 2.612 & 2.514 & 3.292 & 3.945 & 4.038 & 4.048\\
+(81, 9) & 2.619 & 2.627 & 2.546 & 3.615 & 3.998 & 4.044 & 4.048\\
+(289, 17) & 2.623 & 2.653 & 2.780 & 3.813 & 4.023 & 4.046 & 4.049\\
+(1089, 33) & 2.631 & 2.692 & 3.194 & 3.925 & 4.036 & 4.048 & 4.049\\
+(4225, 65) & 2.644 & 2.740 & 3.533 & 3.986 & 4.042 & 4.048 & 4.049\\
+(16641, 129) & 2.668 & 2.788 & 3.761 & 4.017 & 4.046 & 4.049 & 4.049\\
+(66049, 257) & 2.703 & 3.066 & 3.896 & 4.033 & 4.047 & 4.049 & 4.049\\
+\hline
+\hline
+(1466, 55) & 2.637 & 2.713 & 3.385 & 3.962 & 4.040 & 4.048 & 4.049\\
+(5584, 107) & 2.656 & 2.765 & 3.678 & 4.006 & 4.045 & 4.048 & 4.049\\
+(21905, 212) & 2.687 & 2.896 & 3.850 & 4.028 & 4.047 & 4.049 & 4.049\\
+(87260, 422) & 2.727 & 3.274 & 3.941 & 4.038 & 4.048 & 4.049 & 4.049\\
+\hline
+\end{tabular}
+}
+\end{table}
+
+Iteration counts of the preconditioner MinRes method with $Q$, $W$-cap preconditioners are listed in table \ref{tab:iter}. For 
+convergence, absolute error of the preconditioned residaul is required to be less than $10^{-12}$. Note that this is stricter 
+than in the paper. The iteration counts are nicely bounded
+%Note on convergence properties
+\footnote{In this example we have also monitored the $H^1_0$ norm of the $2d$ solution. For problems with less than 1mil dofs the
+error was interpolated into DG$_4$ space. For larger system the error was computed in the same space as the numerical solution. 
+With these metrics the error decreases linearly (or better) until penultimate discretization where it begins to stagnate.}. Note
+that as in the paper $W$-cap comes up slightly more efficient for $\epsilon\gg 1$. This was observed in the original results as well.
+
+Note that the largest problems considered in this experiments outgrow those from the paper by approximately factor ten. The size of 
+these problems is such that they barely fit into the RAM. For larger problems one shall therefore assemble and solve the systems in 
+parellel. At the moment we only have a serial implementation of the trace matrix and so distributed computing is not feasible. However
+we remark that the eigenvalue problem required by the $Q$-cap preconditioner is still very small and could be easily computed on a single
+cpu and then broadcasted appropriately to the remaining processes.
+
+The new results do not contradict those presented in the paper in any way. Moreover, both the eigenvalue problems and the linear systems
+are quite large. Altogether, they should make the reviewers happy.
+%Qcap iters
+\begin{table}[ht]
+  \caption{Iteration counts with the $Q$-cap preconditioned system (top) and $W$-cap preconditioned system (bottom) for different 
+values of parameter $\epsilon$. \textit{Uniform} mesh.
+}
+\label{tab:iter}
+\footnotesize{
+\begin{tabular}{l|ccccccc}
+\hline
+($n$, $m$)\textbackslash $\epsilon$ & $10^{-3}$ & $10^{-2}$ & $10^{-1}$ & $10^{0}$ & $10^{1}$ & $10^{2}$ & $10^{3}$\\
+\hline
+(66049, 257) & 20 & 34 & 37 & 32 & 28 & 24 & 21\\
+(263169, 513) & 22 & 34 & 34 & 30 & 26 & 24 & 20\\
+(1050625, 1025) & 24 & 33 & 32 & 28 & 26 & 22 & 18\\
+(4198401, 2049) & 26 & 32 & 30 & 26 & 24 & 20 & 17\\
+(8392609, 2897) & 26 & 30 & 30 & 26 & 22 & 19 & 15\\
+(11068929, 3327) & 26 & 30 & 30 & 26 & 22 & 19 & 15\\
+\hline
+\hline
+(66049, 257) & 17 & 33 & 40 & 30 & 20 & 14 & 12\\
+(263169, 513) & 19 & 35 & 39 & 28 & 19 & 14 & 11\\
+(1050625, 1025) & 22 & 34 & 37 & 27 & 19 & 14 & 11\\
+(4198401, 2049) & 24 & 34 & 34 & 25 & 17 & 12 & 9\\
+(8392609, 2897) & 25 & 32 & 32 & 24 & 16 & 11 & 8\\
+(11068929, 3327) & 25 & 32 & 32 & 25 & 16 & 13 & 11\\
+\hline
+\end{tabular}
+}
+\end{table}
+
+\subsection*{Computation Costs} We shall now address the second point of the reviewers' comments. In particular, we will focus 
+on the setup cost of both preconditioners. In case of the $Q$-cap preconditioner the operator to be assembled takes the form
+$\text{diag}(AMG(A_2), A^{-1}, H^{-1})$, where $A_2$, $A$ are the discretized 2d, 1d Laplacians and $H$ is the matrix assembled from
+the eigenvalue problem $Ax=\lambda M x$ with $M$ the one dimensional mass matrix. The $W$-cap preconditioner is then 
+$\text{diag}(AMG(A_2+\transp{T}AT)), A^{-1}, C)$ where $T$ is the 2d-1d trace/restriction and matrix $C=M^{-1}AM^{-1}$. 
+
+%Rates
+
+
+
+\section*{Efficiency}
+
+\section*{Todo}
+Address points (iii) and (iv).
+
+\bibliographystyle{plain}
+\bibliography{report}
+
+\end{document}
