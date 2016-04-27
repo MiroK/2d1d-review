@@ -38,47 +38,60 @@
 \textwidth=500pt
 \topmargin=3pt
 
-\title{The efficiency of Q-cap and W-cap preconditioners}
+\title{Efficiency of Q-cap and W-cap preconditioners}
 
 \begin{document}
 \maketitle
 
 \section*{Introduction}
-This note collects new results that address comments of the reviewers on our paper. The comments boil down
-to the following four points: (i) The computational results presented are four rather small problems.
-(ii) The results are missing cost evaluation. (iii) It would be nice to compare the proposed preconditioners
-with some existing alternatives. (iv) It would be nice if the eigenvalue problem of the $Q$-cap were solved
+This note collects new results that address comments of the reviewers on our paper. 
+The comments boil down to the following four points: (i) The computational results 
+presented are four rather small problems. (ii) The results are missing cost evaluation. 
+(iii) It would be nice to compare the proposed preconditioners with some existing 
+alternatives. (iv) It would be nice if the eigenvalue problem of the $Q$-cap were solved
 analytically (as much as possible).
 
 \section*{Preliminaries}
-The results below are for the most part obtained on a desktop PC with 16 GB of RAM and four Intel\textsuperscript{\copyright} 
-Core\texttrademark i5-2500 cpus clocking at 3.3 GHz. The small eigenvalue problems required for constructing the approximations
-of fractional Sobolev norms are solved with routines from OpenBlas\cite{openblas}. The large eigenvalue problems that are used
-to obtain condition numbers of the $Q$, $W$-cap precondtioned systems are solved with routines from SLEPc\cite{slepc} - in particular,
-a generalized Davidson method with Cholesky preconditioning is employed. Finally the implementation of algebraic multigrid (AMG) is
-taken from PETSc\cite{petsc}.
+The results below are for the most part obtained on a desktop PC with 16 GB of RAM 
+and four Intel Core i5-2500 cpus clocking at 3.3 GHz. The small eigenvalue problems 
+required for constructing the approximations of fractional Sobolev norms are solved 
+with routines from LAPACK\cite{lapack} implemented in OpenBlas\cite{openblas}. The 
+large eigenvalue problems that are used to obtain condition numbers of the $Q$, $W$-cap 
+precondtioned systems are solved with routines from SLEPc\cite{slepc} - in particular,
+a generalized Davidson method with Cholesky preconditioning is employed. Finally the 
+implementation of algebraic multigrid (AMG) is taken from PETSc\cite{petsc}.
 
-In the experiments we shall consider two geometrical configurations. \textit{Uniform} mesh refers to a unit square (2d domain) coupled 
-to a horizontal line through $y=\tfrac{1}{2}$ (1d domain). The domain is discretized uniformly into $2N^2$ triangular cells and $N$ 
-interval cells. \textit{Non-uniform} mesh has as the two dimensional domain a bi-unit square coupled to a $Y$-shaped bifurcation which
-is the one dimensional domain. The discretization of \textit{non-uniform} mesh is unstructured. An important distinction between these
-two cases is that in the latter one the number of degrees of freedom on the 1d domain grows faster upon refinement. 
+In the experiments we shall consider two geometrical configurations. \textit{Uniform} 
+mesh refers to a unit square (2$d$ domain) coupled to a horizontal line through 
+$y=\sfrac{1}{2}$ (1$d$ domain). The domain is discretized uniformly into $2N^2$ 
+triangular cells and $N$ interval cells. \textit{Non-uniform} mesh has as the two 
+dimensional domain a bi-unit square coupled to a $Y$-shaped bifurcation which
+is the one dimensional domain. The discretization of \textit{non-uniform} mesh is 
+unstructured. An important distinction between these two cases is that for
+comparable numbers of degrees of freedom(dofs) on a 1$d$ domain the
+\textit{uniform} mesh has more dofs in 2$d$ then the \textit{non-uniform} one.
+Hoever, the latter one represents a less academical configuration.
 
-Finally, we shall denote as $n$ the dimension of the space where the 2d unknown is sought while $m$ is the dimension of the spaces of
-the 1d uknown (and the Lagrange multiplier). Obviously $n+2m$ is the total size of the linear system to be solved.
+Finally, we shall denote as $n$ the dimension of the space where the 2$d$ unknown 
+is sought while $m$ is the dimension of the spaces of the 1$d$ uknown (and the 
+Lagrange multiplier). Obviously $n+2m$ is the total size of the linear system to 
+be solved.
 
 \section*{Results}
-Condition numbers of the $Q$-cap and $W$-cap preconditioned system are listed in respecively in table \ref{tab:con_Qcap}
-and \ref{tab:con_Wcap}. In all four cases they are nicely bounded. Note that in comparison to the
-results presented in the paper the size of the considered problems has grown about eight times. Also note that for $\epsilon \ll 1$ the 
-condition number is close to that of the Schur complement preconditioner.
+Condition numbers of the $Q$-cap and $W$-cap preconditioned system are listed in
+respecively in tables \ref{tab:cond_Qcap} and \ref{tab:cond_Wcap}. In all four 
+cases they are nicely bounded. Note that in comparison to the results presented 
+in the paper the size of the considered problems has grown about eight times. Also 
+note that for $\epsilon \ll 1$ the condition number is close to that of the Schur 
+complement preconditioner (as was true in the paper).
 %Qcap cond
 %Unif
 \begin{table}[ht]
-  \caption{Condition numbers of the $Q$-cap preconditioned system for different values of parameter 
-$\epsilon$. \textit{Uniform} mesh top, \textit{non-uniform} mesh bottom.
+  \caption{Condition numbers of the $Q$-cap preconditioned system for different 
+  values of parameter $\epsilon$. \textit{Uniform} mesh top, \textit{non-uniform} 
+  mesh bottom.
 }
-\label{tab:con_Qcap}
+\label{tab:cond_Qcap}
 \footnotesize{
 \begin{tabular}{l|ccccccc}
 \hline
@@ -105,10 +118,11 @@ $\epsilon$. \textit{Uniform} mesh top, \textit{non-uniform} mesh bottom.
 %Vcap cond
 %Unif
 \begin{table}[hb]
-  \caption{Condition numbers of the $W$-cap preconditioned system for different values of parameter 
-$\epsilon$. \textit{Uniform} mesh top, \textit{non-uniform} mesh bottom.
+  \caption{Condition numbers of the $W$-cap preconditioned system for different 
+  values of parameter $\epsilon$. \textit{Uniform} mesh top, \textit{non-uniform} 
+  mesh bottom.
 }
-\label{tab:con_Wcap_unif}
+\label{tab:cond_Wcap}
 \footnotesize{
 \begin{tabular}{l|ccccccc}
 \hline
@@ -132,27 +146,36 @@ $\epsilon$. \textit{Uniform} mesh top, \textit{non-uniform} mesh bottom.
 }
 \end{table}
 
-Iteration counts of the preconditioner MinRes method with $Q$, $W$-cap preconditioners are listed in table \ref{tab:iter}. For 
-convergence, absolute error of the preconditioned residaul is required to be less than $10^{-12}$. Note that this is stricter 
+Iteration counts of the preconditioner MinRes method with $Q$, $W$-cap preconditioners 
+are listed in table \ref{tab:iter}. For convergence, absolute error of the preconditioned 
+residaul is required to be less than $10^{-12}$. Note that this is stricter 
 than in the paper. The iteration counts are nicely bounded
 %Note on convergence properties
-\footnote{In this example we have also monitored the $H^1_0$ norm of the $2d$ solution. For problems with less than 1mil dofs the
-error was interpolated into DG$_4$ space. For larger system the error was computed in the same space as the numerical solution. 
-With these metrics the error decreases linearly (or better) until penultimate discretization where it begins to stagnate.}. Note
-that as in the paper $W$-cap comes up slightly more efficient for $\epsilon\gg 1$. This was observed in the original results as well.
+\footnote{In this example we have also monitored the $H^1_0$ norm of the 2$d$ solution. 
+For problems with less than one million dofs the error was interpolated into DG$_4$ 
+space. For larger system the error was computed in the same space as the numerical 
+solution. With these metrics the error decreases linearly (or better) until penultimate 
+discretization where it begins to stagnate.}. Note
+that as in the paper $W$-cap comes out slightly more efficient for $\epsilon\gg 1$. 
+This was observed in the original results as well.
 
-Note that the largest problems considered in this experiments outgrow those from the paper by approximately factor ten. The size of 
-these problems is such that they barely fit into the RAM. For larger problems one shall therefore assemble and solve the systems in 
-parellel. At the moment we only have a serial implementation of the trace matrix and so distributed computing is not feasible. However
-we remark that the eigenvalue problem required by the $Q$-cap preconditioner is still very small and could be easily computed on a single
-cpu and then broadcasted appropriately to the remaining processes.
+Note that the largest problems considered in this experiments outgrow those from 
+the paper by approximately factor ten. These problems are such that they barely 
+fit into the RAM. For even larger problems one shall therefore assemble and solve 
+the systems in parellel. At the moment we only have a serial implementation of the 
+trace matrix and so distributed computing is not feasible. However we remark that 
+the eigenvalue problem required by the $Q$-cap preconditioner in the examples is 
+still very small and could be easily computed on a single cpu and then broadcasted 
+appropriately to the remaining processes.
 
-The new results do not contradict those presented in the paper in any way. Moreover, both the eigenvalue problems and the linear systems
-are quite large. Altogether, they should make the reviewers happy.
+The new results do not contradict those presented in the paper in any way. Moreover, 
+both the eigenvalue problems and the linear systems are quite large. Altogether, 
+they should make the reviewers happy.
 %Qcap iters
 \begin{table}[ht]
-  \caption{Iteration counts with the $Q$-cap preconditioned system (top) and $W$-cap preconditioned system (bottom) for different 
-values of parameter $\epsilon$. \textit{Uniform} mesh.
+  \caption{Iteration counts with the $Q$-cap preconditioned system (top) and $W$-cap 
+  preconditioned system (bottom) for different values of parameter $\epsilon$. 
+  \textit{Uniform} mesh.
 }
 \label{tab:iter}
 \footnotesize{
@@ -179,20 +202,264 @@ values of parameter $\epsilon$. \textit{Uniform} mesh.
 }
 \end{table}
 
-\subsection*{Computation Costs} We shall now address the second point of the reviewers' comments. In particular, we will focus 
-on the setup cost of both preconditioners. In case of the $Q$-cap preconditioner the operator to be assembled takes the form
-$\text{diag}(AMG(A_2), A^{-1}, H^{-1})$, where $A_2$, $A$ are the discretized 2d, 1d Laplacians and $H$ is the matrix assembled from
-the eigenvalue problem $Ax=\lambda M x$ with $M$ the one dimensional mass matrix. The $W$-cap preconditioner is then 
-$\text{diag}(AMG(A_2+\transp{T}AT)), A^{-1}, C)$ where $T$ is the 2d-1d trace/restriction and matrix $C=M^{-1}AM^{-1}$. 
+\subsection*{Computation Costs} We shall now address the second point of the 
+reviewers' comments. In particular, we will focus on the setup cost of both 
+preconditioners. For simplicity we let $\epsilon=1$. In case of the $Q$-cap 
+preconditioner the operator to be assembled takes the form $\text{diag}(AMG(A_2), A^{-1}, H^{-1})$, 
+where $A_2$, $A$ are the discretized 2$d$, 1$d$ Laplacians and $H$ is the matrix assembled 
+from the eigenvalue problem $Ax=\lambda M x$ with $M$ the one dimensional mass matrix. 
+The $W$-cap preconditioner is then $\text{diag}(AMG(A_2+\dual{T}AT)), A^{-1}, C)$ 
+where $T$ is the 2$d$-1$d$ trace/restriction and matrix $C=M^{-1}AM^{-1}$. 
 
-%Rates
+Clearly, the most costly operations required by the $Q$-cap preconditioner are
+computation of AMG and solving the generalized eigenvalue problem(GEVP). Unlike
+$Q$-cap, the $W$-cap precondtioner requires AMG on a new operator
+$A_2+\dual{T}AT$, which is not computed as part of the system(left hand side). 
+For completeness we will monitor costs of the assembly (ADD). We remark that in our
+implementation the product term is not assembled with the dedicated PETSc
+routine \texttt{MatPtAP} but with two matrix-matrix multiplications. This is
+potentially suboptimal. Finally we shall keep track of the total cpu time
+required for convergence of preconditioned MinRes.
+
+\begin{table}[ht]
+  \caption{Timings of elements of construction of the $Q$, $W$-cap
+  preconditioners on \textit{uniform} mesh. The numbers in the brackets show 
+  estimated complexity of computing quantitiy $v$ at $i$-th row,
+  $r_i=\sfrac{\log{v_i}-\log{v_{i-1}}}{\log{m_i}-\log{m_{i-1}}}$. Final row is
+  the least squares fit of the reported data(the last row of AMG, ADD
+  timings is ignored) giving complexity $v=\mathcal{O}(m^r)$.
+}
+\label{tab:timings_unif}
+\footnotesize{
+\begin{tabular}{c|cccccc}
+\hline
+ & \multicolumn{2}{c|}{$Q$-cap} & \multicolumn{2}{c}{$W$-cap}\\
+\hline
+  $m$ & AMG$\left[s\right]$ & GEVP$\left[s\right]$ & MinRes$\left[s\right]$ &
+        AMG$\left[s\right]$ & ADD$\left[s\right]$  & MinRes$\left[s\right]$ \\
+\hline
+  257  & 0.075(1.98)  & 0.014(1.81)  &  0.579(1.69)  & 0.078(1.94)  & 0.012(1.85)   & 0.514(1.73)  \\
+  513  & 0.299(2.01)  & 0.066(2.27)  &  2.286(1.99)  & 0.309(1.99)  & 0.047(1.94)   & 2.019(1.98)  \\
+  1025 & 1.201(2.01)  & 0.477(2.87)  &  8.032(1.82)  & 1.228(1.99)  & 0.185(1.99)   & 7.909(1.97)  \\
+  2049 & 4.983(2.05)  & 3.311(2.80)  &  30.814(1.94) & 4.930(2.01)  & 0.738(2.00)   & 30.309(1.94) \\
+  2897 & 9.686(1.92)  & 8.384(2.68)  &  62.666(2.05) & 10.644(2.22) & 1.463(1.98)   & 59.132(1.93) \\
+  3327 & 15.940(3.60) & 12.253(2.74) &  84.431(2.15) & 15.650(2.79) & 11.171(14.69) & 82.132(2.37) \\
+\hline
+% Qamg 2.02 Qeig 2.70 Vamg 2.02 Vadd 1.98 3761 8886110
+  & (2.02) & (2.70) & (1.92) &
+    (2.02) & (1.98) & (1.96) \\
+\hline
+\end{tabular}
+}
+\end{table}
+%
+The observed timings are reported in tables \ref{tab:timings_unif},
+\ref{tab:timings_nonunif}. We remark that with both \textit{uniform} and \textit{non-uniform} 
+mesh the numbers reported for AMG and ADD on the final discretizations deviate 
+from the trend set by the predecessors. This is likely because SWAP memory was 
+required to complete the operations and the cases should therefore be omitted 
+from the discussion. In the remaining cases we observe that AMG construction 
+scales quadratically with $m$ and the inclussion of the trace term has little effect 
+on the construction time. Moreover assembly of $A_2+\dual{T}AT$ has negligible 
+costs in comparison to AMG.
+
+For smaller problem the $W$-cap preconditioner is about as expansive to construct 
+as the $Q$-cap preconditioner. For larger problems, requiring order of thousand
+eigenvalues, the contribution of GEVP solve time to the total cost becomes
+evident. As a result $Q$-cap becomes about twice as expensive to construct as the 
+$W$-cap. We remark that the solution times with both preconditioners are
+practically identical. Moreover the solution time dominates the construction
+time.
+
+In our results, GEVP takes always less time than AMG. However, based on mesh, 
+the employed solver, \texttt{LAPACK.SYGVD}, appears to be $\mathcal{O}(m^{2.7})$
+or $\mathcal{O}(m^{2.8})$ in complexity and thus with increasing $m$, solving 
+the eigenvalue problem might dominate the construction of the $Q$-cap preconditioner.
+Using the least squares fit\footnote{Note that AMG, ADD do not include the last
+discretizations effected by the swapping into considerations. For GEVP all the
+reported timings are included.} we can estimate the size of the problem where the
+cost of GEVP matches that of AMG. On the \textit{uniform} mesh, that moment is
+projected to happen at $(n, m)=(8886110, 3761)$. On the other hand, the
+unstructured discretization results in $(24154952, 7527)$. 
+
+Based on the observed timings, we conclude that $W$-cap preconditioner is more
+practical than the $Q$-cap preconditioner. However, $Q$-cap preconditioner is
+certainly \textit{not} impractical. One can of course imagine conditions where
+the size of the one dimensional problem grows faster than reported here, e.g.
+mesh refined heavily towards the 1$d$ domain, or, 1$d$ domain being a space
+filling curve, but for many applications the $Q$-cap can be an efficient 
+preconditioner.
+%
+\begin{table}[ht]
+  \caption{Timings of elements of construction of the $Q$, $W$-cap
+  preconditioners on \textit{non-uniform} mesh. The numbers in the brackets show 
+  estimated complexity of computing quantitiy $v$ at $i$-th row,
+  $r_i=\sfrac{\log{v_i}-\log{v_{i-1}}}{\log{m_i}-\log{m_{i-1}}}$. Final row is
+  the least squares fit of the reported data(the last row of AMG, ADD
+  timings is ignored) giving complexity $v=\mathcal{O}(m^r)$.}
+\label{tab:timings_nonunif}
+\footnotesize{
+\begin{tabular}{c|cccc}
+\hline
+ & \multicolumn{2}{c|}{$Q$-cap} & \multicolumn{2}{c}{$W$-cap}\\
+\hline
+  $m$ & AMG$\left[s\right]$ & GEVP$\left[s\right]$ & AMG$\left[s\right]$ & ADD$\left[s\right]$ \\
+\hline
+212 & 0.046(2.03) & 0.005(1.62) & 0.049(2.10) & 0.005(1.86)\\
+422 & 0.188(2.04) & 0.018(2.05) & 0.189(1.96) & 0.018(1.75)\\
+841 & 0.783(2.07) & 0.099(2.43) & 0.785(2.07) & 0.066(1.92)\\
+1681 & 3.191(2.03) & 1.001(3.35) & 3.190(2.02) & 0.257(1.96)\\
+3360 & 13.004(2.03) & 8.004(3.00) & 13.220(2.05) & 0.986(1.94)\\
+4514 & 25.465(2.28) & 18.824(2.90) & 30.406(2.82) & 2.178(2.69)\\
+\hline
+% Qamg 2.04 Qeig 2.80 Vamg 2.03 Vadd 1.90 7527 24154952
+  &  (2.04) & (2.80) & (2.03) &  (1.90)\\
+\hline
+\end{tabular}
+}
+\end{table}
+
+% Only symmetry - what about tridiagonaly - there are n^2, n*log(n) algorithm
+In the previous results the generalized eigenvalue problem was solved with an
+algorithm of nearly cubic complexity which only took into account the symmetry of 
+matrices of $A$, $M$. However, as we use CG$_1$ discretization, the matrices
+are also tridiagonal and the $Q$-cap construction could be made more efficient
+with an algorithm which would exploit fully the structure of the eigenvalue problem.
+An $\mathcal{O}(m^2)$\footnote{This scaling is established for rather small
+problems $m<1000$.}. of this kind is given in \cite{gevp_s3d}. Unfortunatelly it
+is not implemented in available linear packages and we do not have resources to
+implement it ourselves. Therefore we only comment that \cite{gevp_s3d} is potentially 
+a mean to make GEVP scale like AMG.
+
+On the other hand there are routines already implemented in LAPACK for dealing
+with eigenvalue problems (EVP) with symmetric tridiagonal matrices, i.e.
+$Ax=\lambda x, A=\dual{A}$, which enjoy the quadratic scaling. Therefore, a
+possible path to a faster $Q$-cap preconditioner is to transform GEVP into EVP 
+with a symmetric tridiagonal matrix. Naturally, such a transformation is only
+meaningful if the resulting modified $Q$-cap preconditioner remains a good
+preconditioner for our coupled problem.
+
+\section*{Efficiency}\label{sec:eff} Let us first assume that were are able to
+transform GEVP and see how much performance can be gained this way. Table
+\ref{tab:evp} shows cpu time required to computed $m$ sized eigenvalue problem
+$Ax=\lambda x$ in comparison to $m$ sized generalized eigenvalue problem
+$Ax=\lambda M x$. Both system are assembled on a \textit{uniform} mesh. In the
+later case we use, as before, LAPACK's \texttt{SYGVD} routine while the EVP is
+solved with \texttt{LAPACK.STEGR} routine which implements the method of
+Multiple Relatively Robust Representations \cite{mmmr} - a nearly
+$\mathcal{O}(m^2)$ algorithm. We observe that the method scales as $m^{2.34}$
+which is close to what \cite{demmel} reported for a jungle of matrices with size
+$m<10^4$. It is evident that there is a lot to gain in efficiency by considering
+possible transformation of GEVP.
+% Comment on complexity of tridiag. Show the numbers GEVP vs. EVP tridiag.
+\begin{table}[ht]
+  \caption{Timings of EVP and GEVP solution times solved respectively with
+  LAPACK's \texttt{STEGR} and \texttt{SYGVD} routines. The results are obtained
+  with Intel Core i5-4570S cpu clocking at 2.9 Ghz.}
+\label{tab:evp}
+\footnotesize{
+\begin{tabular}{c|cc}
+\hline
+  m & EVP$\left[s\right]$ & GEVP$\left[s\right]$\\
+\hline
+1025 & 0.080(1.90) & 0.396(2.56)\\
+2049 & 0.312(1.96) & 2.631(2.73)\\
+4097 & 1.363(2.13) & 18.846(2.84)\\
+8193 & 7.717(2.50) & 122.875(2.71)\\
+16385 & 53.001(2.78) & 876.484(2.83)\\
+\hline
+    & (2.34) & (2.78)\\
+\hline
+\end{tabular}
+}
+\end{table}
+
+% Define the approximations
+Matrix $H$ which is the ultimate diagonal block in the matrix representation of
+the $Q$-cap preconditioner is based on eigenpairs $(\lambda, u)$ such that 
+$Au=\lambda M u$. In particular, matrices $H_s=M(U\Lambda^s \dual{U})M$, where
+$AU=MU\Lambda$, are used in its definition. Let us define $M_l$ as the lumped
+mass matrix and cosquently matrices $U_l, \Lambda_l$ which are such that
+$AU_l=M_l U_l\Lambda$. Then we shall define an approximation of $H_s$ as
+$\hat{H}_s=M(U_l\Lambda^s_l\dual{U})M$. Substituting for $H_s$ in the definition
+of $H$ and the $Q$-cap we obtain a modified operator which shall be termed 
+$\hat{Q}$-cap preconditioner.
+
+% On computation
+Note that $\Lambda_l, U_l$ are GEVP transformed into an EVP with with symmetric 
+tridiagonal matrix
+\begin{equation}\label{eq:foo}
+  M_l^{-1/2}A M_l^{-1/2} V=V\Lambda_l,\quad U_l=M_l^{-1/2} V.
+\end{equation}
+We ramark that that the \eqref{eq:foo} and the original GEVP have the same
+eigenvalues but the eigenvectors must be transformed according to
+\eqref{eq:foo}.
+
+Performance of the approximation is summarized in table \ref{tab:hatQcap} which
+reports condition numbers of the preconditioned system as well as the iteration
+counts of the MinRes method. The experiments are performed on \textit{uniform}
+mesh. 
+
+\begin{table}[hb]
+  \caption{$\hat{Q}$-cap preconditioned system for different values of parameter $\epsilon$. 
+  Condition numbers top half, iteration counts bottom half. \textit{Uniform} mesh.
+}
+\label{tab:hatQcap}
+\footnotesize{
+\begin{tabular}{l|ccccccc}
+\hline
+($n$, $m$)\textbackslash $\epsilon$ & $10^{-3}$ & $10^{-2}$ & $10^{-1}$ & $10^{0}$ & $10^{1}$ & $10^{2}$ & $10^{3}$\\
+\hline
+(25, 5) & 2.626 & 2.697 & 3.216 & 4.357 & 4.764 & 4.817 & 4.823\\
+(81, 9) & 2.636 & 2.788 & 3.677 & 4.704 & 4.846 & 4.872 & 4.875\\
+(289, 17) & 2.655 & 2.951 & 4.208 & 4.904 & 4.923 & 4.930 & 4.930\\
+(1089, 33) & 2.693 & 3.228 & 4.707 & 5.015 & 4.950 & 4.946 & 4.946\\
+(4225, 65) & 2.766 & 3.645 & 5.092 & 5.075 & 4.960 & 4.953 & 4.952\\
+(16641, 129) & 2.901 & 4.172 & 5.343 & 5.106 & 4.964 & 4.955 & 4.954\\
+(66049, 257) & 3.138 & 4.708 & 5.490 & 5.121 & 4.966 & 4.956 & 4.955\\
+\hline
+\hline
+\end{tabular}
+}
+\end{table}
+
+% Previous results suggest that the price for lumping seems to be doubling the
+% iteration count. This translates to doubling the solution time in comparison to
+% the $Q$-cap preconditioner. Note that there the setup cost, which here is
+% significanly lower due to efficient solution of transfomed evp.
+% \begin{table}[hb]
+%   \caption{Condition numbers of the $\hat{Q}$-cap preconditioned system for different 
+%   values of parameter $\epsilon$. \texit{Non-uniform} mesh. The condition
+%   numbers are unbounded.}
+% \label{tab:hatQcap_boom}
+% \footnotesize{
+% \begin{tabular}{l|ccccccc}
+% \hline
+% ($n$, $m$)\textbackslash $\epsilon$ & $10^{-3}$ & $10^{-2}$ & $10^{-1}$ & $10^{0}$ & $10^{1}$ & $10^{2}$ & $10^{3}$\\
+% \hline
+% (1466, 55) & 73.452 & 62.824 & 35.083 & 19.118 & 16.043 & 15.692 & 15.657\\
+% (5584, 107) & 196.413 & 150.327 & 71.371 & 37.053 & 30.877 & 30.181 & 30.110\\
+% (21905, 212) & 536.752 & 351.690 & 146.398 & 73.915 & 61.369 & 59.961 & 59.818\\
+% (87260, 422) & 1416.460 & 776.714 & 296.494 & 147.547 & 122.278 & 119.449 & 119.162\\
+% \hline
+% \end{tabular}
+% }
+% \end{table}
 
 
+% But ununif. Which goes away? Comparison of the spectra. Why?
 
-\section*{Efficiency}
+% The other approximation. Wht
+
+% Why
 
 \section*{Todo}
-Address points (iii) and (iv).
+Address points (iii) and (iv). Some questions: (1) Do we include \S\ref{sec:eff}
+into the paper? (2) Follow up to (1) - should we consider other approximations,
+e.g. include $M_l$ into $H_s$. In any case, do we also explain why the results
+are the way they are? (3) Should all the computations be performed on both meshes
+and the results included in the response to reviewers. Note that on
+\textit{non-uniform} we do not have an analutical solution to test against.
 
 \bibliographystyle{plain}
 \bibliography{report}
