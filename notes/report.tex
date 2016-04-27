@@ -382,7 +382,7 @@ remains a good preconditioner for our coupled problem.
 
 \section*{Efficiency}Let us first assume that were are able to
 transform GEVP and see how much performance can be gained this way. Table
-\ref{tab:evp_unif} shows cpu time required to computed $m$ sized eigenvalue problem
+\ref{tab:evp} shows cpu time required to computed $m$ sized eigenvalue problem
 $Ax=\lambda x$ in comparison to $m$ sized generalized eigenvalue problem
 $Ax=\lambda M x$. Both systems are assembled on a \textit{uniform} mesh. In the
 later case we use, as before, LAPACK's \texttt{SYGVD} routine while the EVP is
@@ -396,11 +396,14 @@ possible transformation of GEVP.
 % Comment on complexity of tridiag. Show the numbers GEVP vs. EVP tridiag.
 %
 \begin{table}
+\caption{Comparison of timings for transformed EVP\eqref{eq:evp} and 
+  GEVP\eqref{eq:gevp}. GEVP is solved by \texttt{LAPACK.SYGVD}. (Left) The
+  symmetric tridiagonal EVP is solved with LAPACK's \texttt{STEGR}. (Right)
+  The symmetric EVP is solved with LAPACK's \texttt{SYEVR}. Both results 
+  are obtained with Intel Core i5-4570S cpu clocking at 2.9 Ghz}
+\label{tab:evp}
 \begin{subtable}{0.48\textwidth}
   \centering
-  \caption{Timings of EVP\eqref{eq:evp} and GEVP\eqref{eq:gevp} solution times solved 
-  respectively with LAPACK's \texttt{STEGR} and \texttt{SYGVD} routines. The results 
-  are obtained with Intel Core i5-4570S cpu clocking at 2.9 Ghz.}
   \footnotesize{
   \begin{tabular}{l|ll}
   \hline
@@ -415,15 +418,11 @@ possible transformation of GEVP.
       & (2.34) & (2.78)\\
   \hline
   \end{tabular}
-  \label{tab:evp_unif}
   }
 \end{subtable}
 %
 \begin{subtable}{0.48\textwidth}
   \centering
-  \caption{Timings of EVP\eqref{eq:evp} and GEVP\eqref{eq:gevp} solution times solved 
-  respectively with LAPACK's \texttt{SyEVR} and \texttt{SYGVD} routines. The results 
-  are obtained with Intel Core i5-4570S cpu clocking at 2.9 Ghz.}
   \footnotesize{
   \begin{tabular}{l|ll}
   \hline
@@ -438,7 +437,6 @@ possible transformation of GEVP.
     & (2.66) & (2.69)\\
   \hline
   \end{tabular}
-  \label{tab:evp_nonunif}
   }
 \end{subtable}
 \end{table}
@@ -466,7 +464,7 @@ In case the mesh has bifurcations $M_l^{-1/2}A M_l^{-1/2}$ is no longer
 triangular. Still, either in form \eqref{eq:evp} or the form of a
 generalized eigenvalue problem $Au=\lambda M_l u$, the problem is cheaper to
 solve than \eqref{eq:gevp}. Among other reasons, there is no need to (Cholesky) 
-factor $M$. The savings are shown in table \ref{tab:evp_nonunif}.
+factor $M$. The savings are shown in table \ref{tab:evp}.
 
 Performance of the approximation is summarized in table \ref{tab:hatQcap} which
 reports condition numbers of the $\hat{Q}$-cap preconditioned system for both
