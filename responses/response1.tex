@@ -1,0 +1,135 @@
+\documentclass[10pt, a4paper]{article}
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{enumerate}
+\usepackage{caption, subcaption, floatrow, subfig}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{xfrac}
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usetikzlibrary{plotmarks, calc}
+\usepackage{standalone}
+\usepackage{url}
+
+%%%%%%% COLORS
+\usepackage{xcolor, colortbl}
+\newcolumntype{S}{>{\columncolor{lime!50}}c}         % serial small
+\newcolumntype{L}{>{\columncolor{cyan!50}}c}         % serial large
+\newcolumntype{P}{>{\columncolor{red!50}}c}          % parallel& 
+%%%%%%%
+
+\newcommand{\reals}{\mathbb{R}}
+\newcommand{\set}[1]{\{#1\}}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+\newcommand{\semi}[1]{\lvert#1\rvert}
+\newcommand{\norm}[1]{\lVert#1\rVert}
+\newcommand{\inner}[2]{\ensuremath{\left(#1, #2\right)}}
+\renewcommand{\brack}[1]{\langle#1\rangle}
+\newcommand{\average}[1]{\ensuremath{\langle#1\rangle} }
+\newcommand{\jump}[1]{\ensuremath{[\![#1]\!]} }
+\newcommand{\mat}[1]{\ensuremath{\mathsf{#1}}}
+\newcommand{\dual}[1]{\ensuremath{{#1}^{\prime}}}
+\renewcommand{\vec}[1]{\mat{#1}}
+\newcommand{\supp}{\operatorname{supp}} 
+
+\oddsidemargin=3pt
+\textwidth=500pt
+\topmargin=3pt
+
+\title{\large{Response to the reviewer}}
+\date{}
+
+\begin{document}
+\maketitle
+
+We would like to thank the reviewer for his/hers helpful comments on our manuscript. 
+Changes made to the paper that reflect them are summarized below. The main
+comments are addressed as follows:
+
+%---------------------- MAJOR 
+\begin{enumerate}
+%%%%
+  \item{\textit{As pointed out in the article, the $Q$-cap preconditioner
+    requires for its realization the eigenvalues of the stiffness matrix. How
+    does this point influence the practicability of the approach? Moreover how
+    expensive is the solution of the eigenvalue problem in comparison to the
+    application of the preconditioner? Also, some comparison results of the two
+    approaches with respect cot time/costs would be helpful. The article would
+    benefit if some additional informations about the efficiency of the proposed
+    methods would be given.
+    }
+}
+%%%%
+  \item{\textit{That about alternative approaches for the realising norms in
+    fractional Sobolev spaces? The authors may also comment on other approaches
+    such as the BPX-approach, multigrid methods on the boundary or discrete
+    boundary integral operators.}
+    }
+%%%%
+  \item{\textit{The weak formulation (2.11) is not consistent with (1.1),
+    particularly the $\epsilon$ in the term $\brack{p, \epsilon T_\Gamma
+    \phi}_{\Gamma}$. Please correct this. Note, if we would start with (1.1) the
+    formulation is non-symmetric and so is (2.12).}
+}
+%%%%
+  \item{\textit{At the end of Section 3.2, the authors present a necessary
+    condition for the inf-sup stability. Maybe a comment for the case of
+    piecewise constant approximations for $Q_h$ can be given.}
+}
+%%%%
+  \item{\textit{The proof of Lemma 3.4 is evident and well known. Stating the
+    inf-sup condition and a citation for the proof is okay.}
+}
+%%%%
+  \item{\textit{In Table 3.2 and Table 4., the authors presented numerical
+    results including iteration numbers. They tend to increase and decrease for
+    the values of $\epsilon$ from $10^{-3}$ to $10^{3}$. Do the authors have an
+    explanation for this behavior?}
+}
+%%%%
+  \item{\textit{Numerical examples for the 3d case, which are application driven
+    (e.g. from porous media), may lead to a great improvement of the article.
+    This is not essential for the manuscript.}
+}
+\end{enumerate}
+
+The following are the changes due to minor comments:
+%---------------------- MINOR 
+
+\begin{itemize}
+%%%%
+  \item{\textit{First sentence of the proof of Lemma 3.2 a full stop is missing.}
+}
+%%%%
+  \item{\textit{In the estimate after (3.13) on page 11 there should be $p_2$
+    instead of $p_1$.}
+}
+%%%%
+  \item{\textit{In Table 3.2 the authors write ``...of size $n_Q=9409$.'' In the
+    table numbers for $n_Q$ are listed up to 97, which is not clear at the first
+    sight. Please be more precise.}
+}
+%%%%
+  \item{\textit{For the results in Table 3.2 and Table 4.2 also the number of
+    total degrees of freedom would be helpful.}
+}
+%%%%
+  \item{\textit{On page 15, the constant $c_1$ in the first inequality is placed
+    wrong.}
+}
+%%%%
+  \item{\textit{On page 15, correct the inequality (3.21).}
+}
+%%%%
+  \item{\textit{In the proof of Theorem 4.1 the authors should be more precise
+    about the variables, e.g. $w=(u, v)$. In the second estimate of the proof a
+    square is missing.}
+}
+%%%%%
+  \item{\textit{Please unify citations, e.g. [32, Chapter 5] vs. [24, ch 5].}
+}
+\end{itemize}
+
+\end{document}
