@@ -13,26 +13,80 @@
 \usepackage{standalone}
 \usepackage{url}
 
-%%%%%%% COLORS
-\usepackage{xcolor, colortbl}
-\newcolumntype{S}{>{\columncolor{lime!50}}c}         % serial small
-\newcolumntype{L}{>{\columncolor{cyan!50}}c}         % serial large
-\newcolumntype{P}{>{\columncolor{red!50}}c}          % parallel& 
-%%%%%%%
-
+% ---Shortcuts---
+\newcommand*{\Scale}[2][4]{\scalebox{#1}{$#2$}}%
+\newcommand*{\Resize}[2]{\resizebox{#1}{!}{$#2$}}%
 \newcommand{\reals}{\mathbb{R}}
+\newcommand{\naturals}{\mathbb{N}}
+\newcommand{\none}{\Scale[1.0]{-1}}
+\newcommand{\half}{\Scale[0.5]{\tfrac{1}{2}}}
+\newcommand{\nhalf}{\Scale[0.5]{-\tfrac{1}{2}}}
+\newcommand{\thalf}{\Scale[0.5]{\tfrac{3}{2}}}
+\renewcommand{\div}{\nabla\cdot}
 \newcommand{\set}[1]{\{#1\}}
+\newcommand{\seq}[1]{\{#1\}}
 \newcommand{\abs}[1]{\lvert#1\rvert}
 \newcommand{\semi}[1]{\lvert#1\rvert}
 \newcommand{\norm}[1]{\lVert#1\rVert}
-\newcommand{\inner}[2]{\ensuremath{\left(#1, #2\right)}}
 \renewcommand{\brack}[1]{\langle#1\rangle}
 \newcommand{\average}[1]{\ensuremath{\langle#1\rangle} }
 \newcommand{\jump}[1]{\ensuremath{[\![#1]\!]} }
+% ---Inner products---
+\newcommand{\inner}[2]{\ensuremath{\left(#1, #2\right)}}
+\newcommand{\HinnerO}[2]{\ensuremath{\left(#1, #2\right)_{1, \Omega}}}
+\newcommand{\HinnerG}[2]{\ensuremath{\left(#1, #2\right)_{1, \Gamma}}}
+\newcommand{\innerO}[2]{\ensuremath{\left(#1, #2\right)_{0, \Omega}}}
+\newcommand{\innerG}[2]{\ensuremath{\left(#1, #2\right)_{0, \Gamma}}}
+% ---Norms---
+\newcommand{\normO}[1]{\lVert#1\rVert_{0, \Omega}}
+\newcommand{\normG}[1]{\lVert#1\rVert_{0, \Gamma}}
+\newcommand{\HnormO}[1]{\lvert#1\rvert_{1, \Omega}}
+\newcommand{\HnormG}[1]{\lvert#1\rvert_{1, \Gamma}}
+\newcommand{\hnorm}[1]{\lVert#1\rVert_{\half}}
+\newcommand{\nhnorm}[1]{\lVert#1\rVert_{\nhalf}}
+% ---Spaces---
+\newcommand{\HO}{H^{1}_0\left(\Omega\right)}
+\newcommand{\HG}{H^{1}_0\left(\Gamma\right)}
+\newcommand{\Dmo}{H^{-1}_0\left(\Gamma\right)} % dual - 1 ONE
+\newcommand{\Dmh}{H^{-\half}\left(\Gamma\right)}
+\newcommand{\HGO}{H^{\half}_{00}\left(\Gamma\right)}
+% ---Intervals---
+\newcommand{\open}[1]{\left(#1\right)}
+\newcommand{\close}[1]{\left[#1\right]}
+% ---Linalg---
+\newcommand{\Amat}{\ensuremath{\mathsf{A}}}
+\newcommand{\Bmat}{\ensuremath{\mathsf{B}}}
+\newcommand{\Mmat}{\ensuremath{\mathsf{M}}}
+\newcommand{\Tmat}{\ensuremath{\mathsf{T}}}
+\newcommand{\Hmat}[1]{\ensuremath{\mathsf{H}\!\left(#1\right)}}
 \newcommand{\mat}[1]{\ensuremath{\mathsf{#1}}}
-\newcommand{\dual}[1]{\ensuremath{{#1}^{\prime}}}
+\newcommand{\inv}[1]{\ensuremath{{#1}^{-1}}}
+\newcommand{\ninv}[1]{\ensuremath{{#1}^{\Scale[0.5]{-1}}}}
+\newcommand{\transp}[1]{\ensuremath{{#1}^{\Scale[0.5]{\top}}}}
 \renewcommand{\vec}[1]{\mat{#1}}
-\newcommand{\supp}{\operatorname{supp}} 
+\newcommand{\spn}{\operatorname{span}\ }
+% Short for math cal
+\newcommand{\op}[1]{\ensuremath{\mathcal{#1}}}
+% Stuff where we might want to change notation
+\newcommand{\AU}{\ensuremath{A_U}}  % What was once A_1
+\newcommand{\AV}{\ensuremath{A_V}}  %               A_2
+\newcommand{\BU}{\ensuremath{B_U}}  %               B_1
+\newcommand{\BV}{\ensuremath{B_V}}  %               B_2
+\newcommand{\BBW}{\ensuremath{\mathcal{B}_{W}}}  %  W cap preconditioner
+\newcommand{\BBQ}{\ensuremath{\mathcal{B}_{Q}}}  %  Q cap preconditioner
+% Matrix representation of the system operator, its components and the
+% preconditioner
+\newcommand{\AAh}{\ensuremath{\mathbb{A}}}
+\newcommand{\BBh}{\ensuremath{\mathbb{B}}}
+\newcommand{\BBWh}{\ensuremath{\mathbb{B}_{W}}}
+\newcommand{\BBQh}{\ensuremath{\mathbb{B}_{Q}}}
+% ---Change inf and sup alignments---
+\makeatletter
+\renewcommand{\inf}{\mathop{\@inf\vphantom{\@sup}}}
+\renewcommand{\sup}{\mathop{\@sup\vphantom{\@inf}}}
+\newcommand{\@inf}{\operatorname*{inf}}
+\newcommand{\@sup}{\operatorname*{sup}}
+\newcommand{\overbar}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
 
 \oddsidemargin=3pt
 \textwidth=500pt
@@ -98,13 +152,17 @@ comments are addressed as follows:
 The following are the changes due to minor comments:
 %---------------------- MINOR 
 
-\begin{itemize}
+\begin{enumerate}
+\setcounter{enumi}{7}
 %%%%
-  \item{\textit{First sentence of the proof of Lemma 3.2 a full stop is missing.}
+  \item{\textit{First sentence of the proof of Lemma 3.2 a full stop is missing.}\\
+    This has been fixed.
 }
 %%%%
   \item{\textit{In the estimate after (3.13) on page 11 there should be $p_2$
-    instead of $p_1$.}
+    instead of $p_1$.}\\
+    The inequality has been changed to read $\norm{v_h}_{0, \Gamma}\leq
+    \norm{p_2}_{0, \Gamma}$.
 }
 %%%%
   \item{\textit{In Table 3.2 the authors write ``...of size $n_Q=9409$.'' In the
@@ -125,11 +183,48 @@ The following are the changes due to minor comments:
 %%%%
   \item{\textit{In the proof of Theorem 4.1 the authors should be more precise
     about the variables, e.g. $w=(u, v)$. In the second estimate of the proof a
-    square is missing.}
+    square is missing.}\\
+    Variables $w, \omega$ are now defined at the beginning of the proof. The
+    missing power was added. The modifide part of the proof now reads:
+    %
+    With $w=(u, v)$, $\omega=(\phi, \psi)$ application of the Cauchy-Schwarz 
+  inequality yields
+  \[
+    \begin{split}
+      \brack{A w, \omega }_{\Omega} &= \inner{\nabla u }{\nabla \phi}_{\Omega} + 
+      \inner{\nabla v}{\nabla \psi}_{\Gamma}
+      \\
+      & \leq \HnormO{u}\HnormO{\phi} + \HnormG{v}\HnormG{\psi}
+      \\
+      & \leq \HnormO{u}\HnormO{\phi} + \epsilon^2\HnormG{T_{\Gamma}
+      u}\HnormG{\phi} + \HnormG{v}\HnormG{\psi}
+      \\
+      & \leq \norm{w}_W\norm{\omega}_W.
+  \end{split}
+  \]
+Therefore $A$ is bounded with $\norm{A}=1$ and (A. 1a) holds. The coercivity of 
+$A$ on $\ker B$ for (A. 1b) is obtained from
+  \[
+  \begin{split}
+  \inf_{w\in \ker B}\frac{\brack{Aw, w}_{\Omega}}{\norm{w}^2_W} &=
+  % 
+  \inf_{w\in \ker B}\frac{\HnormO{u}^2 + \HnormG{v}^2}
+  {
+  \HnormO{u}^2+\epsilon^2\HnormG{T_\Gamma u}^2+\HnormG{v}^2
+  }
+  \\
+  &=
+  \inf_{w\in \ker B}\frac{\HnormO{u}^2+\HnormG{v}^2}
+  %
+  {\HnormO{u}^2 + 2\HnormG{v}^2} \geq \frac{1}{2},
+  \end{split}
+  \]
+  %%%%  
 }
 %%%%%
-  \item{\textit{Please unify citations, e.g. [32, Chapter 5] vs. [24, ch 5].}
+  \item{\textit{Please unify citations, e.g. [32, Chapter 5] vs. [24, ch 5].}\\
+    Citations have been unified. They now read e.g. [29, ch 9.11].
 }
-\end{itemize}
+\end{enumerate}
 
 \end{document}
