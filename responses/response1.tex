@@ -178,10 +178,30 @@ The following are the changes due to minor comments:
 }
 %%%%
   \item{\textit{On page 15, the constant $c_1$ in the first inequality is placed
-    wrong.}
+    wrong.}\\
+    The inequality has been corrected. The estimate for the lower bound now reads
+  \[
+  \transp{\vec{p}} \mat{S} \vec{p}
+  \geq
+    c_1\epsilon^2\transp{\vec{p}} \Hmat{-\tfrac{1}{2}} \vec{p} + 
+  \transp{\vec{p}} \Hmat{-1} \vec{p}\\
+  \geq 
+  C_1 \transp{\vec{p}} \inv{\mat{N}_Q} \vec{p}
+  \]
+  with $C_1=\min\open{1, c_1}$.\qquad
 }
 %%%%
-  \item{\textit{On page 15, correct the inequality (3.21).}
+  \item{\textit{On page 15, correct the inequality (3.21).}\\
+    We have removed the excess mass matrices from the inner term of the
+    inequality. The corrected (3.21) now reads
+  \begin{equation}
+    c_1\transp{\vec{y}} \inv{\Hmat{\tfrac{1}{2}}} \vec{y}
+    \leq
+    \transp{\vec{y}} \Tmat\inv{\Amat_{{U}}}\transp{\Tmat} \vec{y}
+    \leq      
+    c_2\transp{\vec{y}} \inv{\Hmat{\tfrac{1}{2}}} \vec{y}
+    \quad \text{ for all } y \in \reals^{m}.
+  \end{equation}
 }
 %%%%
   \item{\textit{In the proof of Theorem 4.1 the authors should be more precise
