@@ -54,7 +54,8 @@ address them are given below:
 The need to solve an eigenvalue problem for the stiffness matrix in the implementation 
 of the Q-cap preconditioner is a major weakness of this approach. ... even if an eigenvalue 
 problem of this sort is solved only once, it can dominate the computational time altogether.
-}
+}\\
+\textcolor{red}{See \S 3.3, \S 4.2, \S 5.}
 }
 %%%%
   \item{\textit{
@@ -62,6 +63,7 @@ Not enough attention is given to computational aspects of the approaches taken. 
 necessary to provide a detailed computational cost analysis of the preconditioners, 
 and especially the Q-cap preconditioner. 
 }
+    \textcolor{red}{See \S 3.3, \S 4.2, \S 5.}
 }
 %%%%
   \item{\textit{
@@ -69,31 +71,39 @@ While some observations about the spectrum (such as Figure 3.3) are helpful, I w
 it would not be possible to perform a more complete eigenvalue analysis of the preconditioned 
 matrix, i.e., to solve the generalized eigenvalue problem analytically to the extent possible 
 and attempt to reveal algebraic multiplicity of some of the eigenvalues. (I recognize that this 
-may be difficult.)
-}
+may be difficult.)}\\
+\textcolor{blue}{TODO.}
 }
 %%%%
   \item{\textit{
 The paper is fairly sparse with respect to comparison to other effective preconditioning approaches.
-  }
+  }\\
+  \textcolor{red}{See intro to \S 4.}
 }
 %%%%
   \item{\textit{
 Please provide more information in the numerical experiments. What are the dimensions 
     of the linear systems? What about timings?
-    }
+    }\\
+    \textcolor{red}{See \S 3.3, \S 4.2, \S 5.}
 }
 %%%%
   \item{\textit{
 The numerical experiments are, altogether, for rather small problems. Again, given 
 that efficiency seems to be an argument made in the paper, it would be necessary 
-to demonstrate this efficiency on larger problems. 
-  }
+to demonstrate this efficiency on larger problems.}\\
+    \textcolor{red}{See \S 3.3, \S 4.2, \S 5.}
+
 }
 %%%%
   \item{\textit{
 It would also be very good if real world three-dimensional experiments could be presented.
-    }
+    }\\
+    \textcolor{red}{We agree but 3d-2d is really possible with different realizations of the
+    Schur complement precondtioner which are outlined in beginning of \S 4.
+    Moreover we are after 3d-1d coupling. Case presented here is a first step
+    which, we think, deserves to be studied on it own for its relevance to other
+    applications.}
 }
 
 \end{enumerate}

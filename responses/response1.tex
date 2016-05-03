@@ -113,13 +113,15 @@ comments are addressed as follows:
     approaches with respect cot time/costs would be helpful. The article would
     benefit if some additional informations about the efficiency of the proposed
     methods would be given.
-    }
+    }\\
+    \textcolor{red}{See \S 3.3, \S 4.2, \S 5.}
 }
 %%%%
   \item{\textit{That about alternative approaches for the realising norms in
     fractional Sobolev spaces? The authors may also comment on other approaches
     such as the BPX-approach, multigrid methods on the boundary or discrete
-    boundary integral operators.}
+    boundary integral operators.}\\
+    \textcolor{red}{See intro to \S 4.}
     }
 %%%%
   \item{\textit{The weak formulation (2.11) is not consistent with (1.1),
@@ -133,22 +135,35 @@ comments are addressed as follows:
 %%%%
   \item{\textit{At the end of Section 3.2, the authors present a necessary
     condition for the inf-sup stability. Maybe a comment for the case of
-    piecewise constant approximations for $Q_h$ can be given.}
+    piecewise constant approximations for $Q_h$ can be given.}\\
+    \textcolor{red}{We have added remark following the corollary 3 showing 
+    that the space of piece-wise constants is not suitable. Is this true?}
 }
 %%%%
   \item{\textit{The proof of Lemma 3.4 is evident and well known. Stating the
-    inf-sup condition and a citation for the proof is okay.}
+    inf-sup condition and a citation for the proof is okay.}\\
+    \textcolor{red}{Lemma 3.4 has been removed. Instead we give a reference
+    discussing stability of discretization for the Babu\v{s}ka problem in
+    Example 2.2. This way the example is self-contained and we do not need to
+    come back to it in Section 3., Magne?
+    }
 }
 %%%%
   \item{\textit{In Table 3.2 and Table 4., the authors presented numerical
     results including iteration numbers. They tend to increase and decrease for
     the values of $\epsilon$ from $10^{-3}$ to $10^{3}$. Do the authors have an
     explanation for this behavior?}
+    \textcolor{blue}{TODO.}
 }
 %%%%
   \item{\textit{Numerical examples for the 3d case, which are application driven
     (e.g. from porous media), may lead to a great improvement of the article.
-    This is not essential for the manuscript.}
+    This is not essential for the manuscript.}\\
+    \textcolor{red}{We agree but 3d-2d is really possible with different realizations of the
+    Schur complement precondtioner which are outlined in beginning of \S 4.
+    Moreover we are after 3d-1d coupling. Case presented here is a first step
+    which, we think, deserves to be studied on it own for its relevance to other
+    applications.}
 }
 \end{enumerate}
 
